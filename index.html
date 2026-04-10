@@ -462,6 +462,8 @@
             .day:hover { background: none !important; }
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body class="event-colors">
     <div class="drag-hint" id="dragHint">드래그: 이동 · Ctrl+드래그: 복사</div>
@@ -646,6 +648,46 @@
         const LEAVE_LABELS = { vacation: '휴가', am: '오전반차', pm: '오후반차' };
         const MAX_VISIBLE = 6;
 
+        const firebaseConfig = {
+            apiKey: "AIzaSyDI5VxCwhP6RVtFcdvUBJnfpMvRiP7A0us",
+            authDomain: "calendar-6df01.firebaseapp.com",
+            databaseURL: "https://calendar-6df01-default-rtdb.firebaseio.com",
+            projectId: "calendar-6df01",
+            storageBucket: "calendar-6df01.firebasestorage.app",
+            messagingSenderId: "146027971921",
+            appId: "1:146027971921:web:346866bee82e80963dbf70",
+            measurementId: "G-HM690BKXNZ"
+        };
+
+        let db = null;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+        } catch (e) {
+            console.warn('Firebase 초기화 실패, localStorage만 사용합니다.', e);
+        }
+
+        let currentListenerPath = null;
+
+        function dbPath() {
+            return `calendar/${currentYear}_${String(currentMonth).padStart(2,'0')}`;
+        }
+
+        function setupListener() {
+            if (!db) return;
+            if (currentListenerPath) {
+                db.ref(currentListenerPath).off();
+            }
+            currentListenerPath = dbPath();
+            db.ref(currentListenerPath).on('value', function(snapshot) {
+                const val = snapshot.val();
+                events = val ? JSON.parse(val) : {};
+                localStorage.setItem(storageKey(), JSON.stringify(events));
+                renderCalendar();
+                if (selectedDay !== null) renderEventList();
+            });
+        }
+
         function storageKey() {
             return `khs_calendar_${currentYear}_${String(currentMonth).padStart(2,'0')}`;
         }
@@ -654,10 +696,12 @@
 
         function saveEvents() {
             localStorage.setItem(storageKey(), JSON.stringify(events));
+            if (db) db.ref(dbPath()).set(JSON.stringify(events));
         }
 
         function loadEvents() {
             events = JSON.parse(localStorage.getItem(storageKey()) || '{}');
+            setupListener();
         }
 
         function updateHeader() {
@@ -1104,6 +1148,7 @@
 
         updateHeader();
         renderCalendar();
+        setupListener();
     </script>
 </body>
 </html>
