@@ -454,6 +454,20 @@
             .footer { font-size: 0.7em; }
         }
 
+        .auth-btn {
+            background: rgba(255,255,255,0.9) !important;
+            color: #1e3c72 !important;
+            font-weight: 700 !important;
+        }
+
+        .auth-btn:hover { background: #fff !important; }
+
+        .auth-btn.logged-in {
+            background: rgba(255,255,255,0.25) !important;
+            color: #fff !important;
+            font-weight: 500 !important;
+        }
+
         @media print {
             body { background: #fff; padding: 0; }
             .calendar { box-shadow: none; max-width: 100%; }
@@ -464,6 +478,7 @@
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 <body class="event-colors">
     <div class="drag-hint" id="dragHint">드래그: 이동 · Ctrl+드래그: 복사</div>
@@ -482,6 +497,7 @@
                 <button onclick="document.getElementById('importFile').click()">불러오기</button>
                 <button onclick="window.print()">인쇄</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+                <button id="authBtn" class="auth-btn" onclick="doLogin()">로그인</button>
             </div>
         </div>
         <div class="calendar-body">
@@ -660,11 +676,39 @@
         };
 
         let db = null;
+        let currentUser = null;
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
+            firebase.auth().onAuthStateChanged(function(user) {
+                currentUser = user;
+                updateAuthUI();
+                renderCalendar();
+                if (selectedDay !== null) renderEventList();
+            });
         } catch (e) {
             console.warn('Firebase 초기화 실패, localStorage만 사용합니다.', e);
+        }
+
+        function doLogin() {
+            if (currentUser) {
+                firebase.auth().signOut();
+            } else {
+                firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());
+            }
+        }
+
+        function updateAuthUI() {
+            const btn = document.getElementById('authBtn');
+            if (currentUser) {
+                btn.textContent = currentUser.displayName || currentUser.email;
+                btn.classList.add('logged-in');
+                btn.title = '클릭하면 로그아웃';
+            } else {
+                btn.textContent = '로그인';
+                btn.classList.remove('logged-in');
+                btn.title = 'Google 로그인';
+            }
         }
 
         let currentListenerPath = null;
@@ -779,7 +823,8 @@
                     if (st === 'done') stHtml = '<span class="tag-status done">완료</span>';
                     else if (st === 'final') stHtml = '<span class="tag-status final">최종</span>';
                     const evIdx = dayEv.indexOf(ev);
-                    evHtml += `<div class="event-tag c${ci % 3}" draggable="true" data-from="${d}" data-idx="${evIdx}" title="${text}"><span class="tag-text">${text}</span>${stHtml}</div>`;
+                    const canDrag = currentUser ? 'draggable="true"' : '';
+                    evHtml += `<div class="event-tag c${ci % 3}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${text}"><span class="tag-text">${text}</span>${stHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
@@ -832,11 +877,14 @@
             document.getElementById('eventInput').value = '';
             document.querySelectorAll('.leave-btn').forEach(btn => { btn.classList.remove('on'); btn.classList.add('off'); });
             document.getElementById('leaveForm').style.display = 'none';
-            document.getElementById('eventForm').style.display = 'flex';
             document.getElementById('memberSelect').value = '';
+            const isAuth = !!currentUser;
+            document.getElementById('colorPicker').style.display = isAuth ? 'flex' : 'none';
+            document.querySelector('.leave-options').style.display = isAuth ? 'flex' : 'none';
+            document.getElementById('eventForm').style.display = isAuth ? 'flex' : 'none';
             renderColorPicker();
             renderEventList();
-            setTimeout(() => document.getElementById('eventInput').focus(), 100);
+            if (isAuth) setTimeout(() => document.getElementById('eventInput').focus(), 100);
         }
 
         function closeModal() {
@@ -862,8 +910,11 @@
                 const stLabel = st ? `<span class="status-label ${st}">${st === 'done' ? '완료' : '최종 완료'}</span>` : '';
                 const doneActive = st === 'done' ? ' active-done' : '';
                 const finalActive = st === 'final' ? ' active-final' : '';
-                const statusBtns = `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>`;
-                return `<li>${colorDot}${leaveLabel}<span onclick="editEvent(${i})">${text}</span>${stLabel}${statusBtns}<button class="event-delete" onclick="deleteEvent(${i})">&#10005;</button></li>`;
+                const isAuth = !!currentUser;
+                const statusBtns = isAuth ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
+                const deleteBtn = isAuth ? `<button class="event-delete" onclick="deleteEvent(${i})">&#10005;</button>` : '';
+                const editClick = isAuth ? `onclick="editEvent(${i})"` : '';
+                return `<li>${colorDot}${leaveLabel}<span ${editClick}>${text}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
             }).join('');
         }
 
