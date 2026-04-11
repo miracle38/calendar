@@ -1065,8 +1065,8 @@
                 else schedules.push(renderItem(ev, i));
             });
 
-            scheduleList.innerHTML = schedules.length ? schedules.join('') : '';
-            leaveList.innerHTML = leaves.length ? leaves.join('') : '';
+            scheduleList.innerHTML = schedules.length ? schedules.join('') : '<div class="no-events">등록된 제품 일정이 없습니다</div>';
+            leaveList.innerHTML = leaves.length ? leaves.join('') : '<div class="no-events">등록된 연차가 없습니다</div>';
         }
 
         function addLeave() {
