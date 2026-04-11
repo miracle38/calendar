@@ -1211,8 +1211,7 @@
             html += '<tr>';
             dayNames.forEach((name, i) => {
                 const w = (i === 0 || i === 6) ? narrowW : wideW;
-                const dayColor = i === 0 ? '#ffb3b3' : (i === 6 ? '#a3d5ff' : '#fff');
-                html += `<td width="${w}" style="border:1px solid rgba(255,255,255,0.3);padding:14px 4px;text-align:center;font-weight:800;font-size:18px;background:#3a4f6b;color:${dayColor};">${name}</td>`;
+                html += `<td width="${w}" style="border:1px solid #d0d0d0;padding:14px 4px;text-align:center;font-weight:800;font-size:18px;background:#e8f0fe;color:${dayColors[i]};">${name}</td>`;
             });
             html += '</tr>';
 
