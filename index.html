@@ -55,6 +55,7 @@
 
         .toolbar button:hover { background: rgba(255,255,255,0.35); }
         .auth-only { display: none; }
+        .auth-only.cached-show { display: inline-block; }
         .toolbar button.btn-accent { background: rgba(255,255,255,0.85); color: #1e3c72; }
         .toolbar button.btn-accent:hover { background: #fff; }
 
@@ -700,6 +701,9 @@
 
         let db = null;
         let currentUser = null;
+        if (localStorage.getItem('loggedIn') === 'true') {
+            document.querySelectorAll('.auth-only').forEach(b => b.classList.add('cached-show'));
+        }
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
@@ -742,12 +746,14 @@
                 btn.textContent = currentUser.displayName || currentUser.email;
                 btn.classList.add('logged-in');
                 btn.title = '클릭하면 로그아웃';
-                authOnlyBtns.forEach(b => b.style.display = 'inline-block');
+                authOnlyBtns.forEach(b => { b.classList.remove('cached-show'); b.style.display = 'inline-block'; });
+                localStorage.setItem('loggedIn', 'true');
             } else {
                 btn.textContent = '로그인';
                 btn.classList.remove('logged-in');
                 btn.title = 'Google 로그인';
-                authOnlyBtns.forEach(b => b.style.display = 'none');
+                authOnlyBtns.forEach(b => { b.classList.remove('cached-show'); b.style.display = 'none'; });
+                localStorage.removeItem('loggedIn');
             }
         }
 
