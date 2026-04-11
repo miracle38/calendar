@@ -70,26 +70,18 @@
         .calendar-body { padding: 12px; }
 
         /* 요일 헤더 */
-        .weekdays {
-            display: grid;
-            grid-template-columns: 0.15fr 1fr 1fr 1fr 1fr 1fr 0.15fr;
-            text-align: center;
-            background: #d8dde4;
-            gap: 1px;
-            border: 1px solid #f0f0f0;
-        }
-
-        .weekdays span {
+        .weekday-cell {
             padding: 16px 0;
             color: #333;
             font-size: 1.15em;
             font-weight: 800;
             letter-spacing: 2px;
             background: #e8f0fe;
+            text-align: center;
         }
 
-        .weekdays span:first-child { color: #e74c3c; }
-        .weekdays span:last-child { color: #3498db; }
+        .weekday-cell.sun { color: #e74c3c; }
+        .weekday-cell.sat { color: #3498db; }
 
         /* 날짜 그리드 */
         .days {
@@ -467,7 +459,7 @@
             .day { min-height: 120px; padding: 4px 5px; }
             .day .date-number { font-size: 1em; width: 28px; height: 28px; line-height: 28px; }
             .day .event-tag { font-size: 0.7em; padding: 3px 5px; margin-bottom: 3px; }
-            .weekdays span { font-size: 0.95em; padding: 10px 0; }
+            .weekday-cell { font-size: 0.95em; padding: 10px 0; }
         }
 
         /* 모바일 */
@@ -479,9 +471,8 @@
             .calendar-header p { font-size: 0.8em; }
             .toolbar button { padding: 5px 10px; font-size: 0.75em; }
             .calendar-body { padding: 4px; }
-            .weekdays { grid-template-columns: 0.4fr 1fr 1fr 1fr 1fr 1fr 0.4fr; }
-            .weekdays span { font-size: 0.8em; padding: 8px 0; }
             .days { grid-template-columns: 0.4fr 1fr 1fr 1fr 1fr 1fr 0.4fr; }
+            .weekday-cell { font-size: 0.8em; padding: 8px 0; }
             .day { min-height: 80px; padding: 3px 3px; }
             .day.sunday, .day.saturday { min-height: 50px; }
             .day .date-number { font-size: 0.85em; width: 24px; height: 24px; line-height: 24px; }
@@ -586,9 +577,6 @@
             </div>
         </div>
         <div class="calendar-body">
-            <div class="weekdays">
-                <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
-            </div>
             <div class="days" id="calendarDays"></div>
         </div>
         <div class="footer">품질관리팀 Calendar</div>
@@ -916,6 +904,11 @@
         function renderCalendar() {
             const c = document.getElementById('calendarDays');
             c.innerHTML = '';
+            const weekdayNames = ['일','월','화','수','목','금','토'];
+            weekdayNames.forEach((name, i) => {
+                const cls = i === 0 ? 'weekday-cell sun' : (i === 6 ? 'weekday-cell sat' : 'weekday-cell');
+                c.innerHTML += `<div class="${cls}">${name}</div>`;
+            });
             const startOffset = new Date(currentYear, currentMonth - 1, 1).getDay();
             const totalDays = new Date(currentYear, currentMonth, 0).getDate();
             const today = new Date();
