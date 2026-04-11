@@ -694,7 +694,7 @@
             if (currentUser) {
                 firebase.auth().signOut();
             } else {
-                firebase.auth().signInWithRedirect(new firebase.auth.GoogleAuthProvider());
+                firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());
             }
         }
 
