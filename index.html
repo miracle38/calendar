@@ -56,8 +56,12 @@
         .toolbar button:hover { background: rgba(255,255,255,0.35); }
         .auth-only { display: none; }
         .auth-only.cached-show { display: inline-block; }
-        .toolbar button.btn-accent { background: rgba(255,255,255,0.85); color: #1e3c72; }
-        .toolbar button.btn-accent:hover { background: #fff; }
+        .toolbar button.btn-today { background: #fbbf24; color: #333; }
+        .toolbar button.btn-today:hover { background: #fcd34d; }
+        .toolbar button.btn-data { background: #34d399; color: #fff; }
+        .toolbar button.btn-data:hover { background: #6ee7b7; }
+        .toolbar button.btn-print { background: rgba(255,255,255,0.85); color: #1e3c72; }
+        .toolbar button.btn-print:hover { background: #fff; }
 
         .calendar-body { padding: 12px; }
 
@@ -513,11 +517,11 @@
             <div class="toolbar">
                 <button onclick="prevMonth()">◀ 이전</button>
                 <button onclick="nextMonth()">다음 ▶</button>
-                <button class="btn-accent" onclick="goToday()">오늘</button>
-                <button class="auth-only" onclick="copyAsHTML()">게시판 복사</button>
-                <button class="auth-only" onclick="exportJSON()">내보내기</button>
-                <button class="auth-only" onclick="document.getElementById('importFile').click()">불러오기</button>
-                <button class="btn-accent" onclick="window.print()">인쇄</button>
+                <button class="btn-today" onclick="goToday()">오늘</button>
+                <button class="auth-only btn-data" onclick="copyAsHTML()">게시판 복사</button>
+                <button class="auth-only btn-data" onclick="exportJSON()">내보내기</button>
+                <button class="auth-only btn-data" onclick="document.getElementById('importFile').click()">불러오기</button>
+                <button class="btn-print" onclick="window.print()">인쇄</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
                 <button id="authBtn" class="auth-btn" onclick="doLogin()">로그인</button>
             </div>
