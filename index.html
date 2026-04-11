@@ -694,7 +694,15 @@
             if (currentUser) {
                 firebase.auth().signOut();
             } else {
-                firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());
+                var provider = new firebase.auth.GoogleAuthProvider();
+                firebase.auth().signInWithPopup(provider).catch(function(error) {
+                    console.warn('팝업 로그인 실패, 리다이렉트로 시도합니다.', error);
+                    if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                        firebase.auth().signInWithRedirect(provider);
+                    } else {
+                        alert('로그인 실패: ' + error.message);
+                    }
+                });
             }
         }
 
