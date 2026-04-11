@@ -510,10 +510,10 @@
                 <button onclick="prevMonth()">◀ 이전</button>
                 <button onclick="nextMonth()">다음 ▶</button>
                 <button onclick="goToday()">오늘</button>
-                <button onclick="copyAsHTML()">게시판 복사</button>
-                <button onclick="exportJSON()">내보내기</button>
-                <button onclick="document.getElementById('importFile').click()">불러오기</button>
-                <button onclick="window.print()">인쇄</button>
+                <button class="auth-only" onclick="copyAsHTML()">게시판 복사</button>
+                <button class="auth-only" onclick="exportJSON()">내보내기</button>
+                <button class="auth-only" onclick="document.getElementById('importFile').click()">불러오기</button>
+                <button class="auth-only" onclick="window.print()">인쇄</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
                 <button id="authBtn" class="auth-btn" onclick="doLogin()">로그인</button>
             </div>
@@ -734,14 +734,17 @@
 
         function updateAuthUI() {
             const btn = document.getElementById('authBtn');
+            const authOnlyBtns = document.querySelectorAll('.auth-only');
             if (currentUser) {
                 btn.textContent = currentUser.displayName || currentUser.email;
                 btn.classList.add('logged-in');
                 btn.title = '클릭하면 로그아웃';
+                authOnlyBtns.forEach(b => b.style.display = '');
             } else {
                 btn.textContent = '로그인';
                 btn.classList.remove('logged-in');
                 btn.title = 'Google 로그인';
+                authOnlyBtns.forEach(b => b.style.display = 'none');
             }
         }
 
