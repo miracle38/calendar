@@ -1051,6 +1051,10 @@
             const name = select.value;
             if (!name || selectedDay === null || !selectedLeave) return;
             if (!events[selectedDay]) events[selectedDay] = [];
+            var dup = events[selectedDay].some(function(ev) {
+                return typeof ev === 'object' && ev.leave && ev.text === name;
+            });
+            if (dup) { alert(name + '님은 이미 등록되어 있습니다.'); return; }
             events[selectedDay].push({ text: name, leave: true, leaveType: selectedLeave });
             saveEvents();
             select.value = '';
