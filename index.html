@@ -937,7 +937,7 @@
                 const doneActive = st === 'done' ? ' active-done' : '';
                 const finalActive = st === 'final' ? ' active-final' : '';
                 const isAuth = !!currentUser;
-                const statusBtns = isAuth ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
+                const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
                 const deleteBtn = isAuth ? `<button class="event-delete" onclick="deleteEvent(${i})">&#10005;</button>` : '';
                 const editClick = isAuth ? `onclick="editEvent(${i})"` : '';
                 return `<li>${colorDot}${leaveLabel}<span ${editClick}>${text}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
