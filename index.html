@@ -426,9 +426,9 @@
         .section-title {
             font-size: 1em; font-weight: 700; color: #1e3c72;
             letter-spacing: 0.5px; margin-bottom:10px;
-            padding: 6px 12px;
-            border-left: 4px solid #1e3c72;
-            background: linear-gradient(90deg, #f0f4fa 0%, transparent 100%);
+            padding-bottom: 6px;
+            border-bottom: 2px solid #1e3c72;
+            display: inline-block;
         }
 
         .leave-add-btn {
@@ -591,7 +591,7 @@
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="section-title">※ 제품</div>
+                <div class="section-title">📋 제품</div>
                 <div class="color-picker" id="colorPicker"></div>
                 <div class="event-form" id="eventForm">
                     <textarea id="eventInput" placeholder="일정을 입력하세요 (Shift+Enter로 줄바꿈)" rows="1"></textarea>
@@ -599,7 +599,7 @@
                 </div>
                 <ul class="event-list" id="scheduleList"></ul>
                 <hr style="border:none; border-top:1px solid #e0e0e0; margin:20px 0;">
-                <div class="section-title">※ 연차</div>
+                <div class="section-title">🗓 연차</div>
                 <div class="leave-options" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <button class="leave-btn type-vacation off" onclick="toggleLeave('vacation')">휴가</button>
                     <button class="leave-btn type-am off" onclick="toggleLeave('am')">오전반차</button>
