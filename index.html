@@ -58,8 +58,12 @@
         .auth-only.cached-show { display: inline-block; }
         .toolbar button.btn-today { background: #fbbf24; color: #333; }
         .toolbar button.btn-today:hover { background: #fcd34d; }
-        .toolbar button.btn-data { background: #34d399; color: #fff; }
-        .toolbar button.btn-data:hover { background: #6ee7b7; }
+        .toolbar button.btn-copy { background: #34d399; color: #fff; }
+        .toolbar button.btn-copy:hover { background: #6ee7b7; }
+        .toolbar button.btn-export { background: #60a5fa; color: #fff; }
+        .toolbar button.btn-export:hover { background: #93bbfd; }
+        .toolbar button.btn-import { background: #f472b6; color: #fff; }
+        .toolbar button.btn-import:hover { background: #f9a8d4; }
         .toolbar button.btn-print { background: rgba(255,255,255,0.85); color: #1e3c72; }
         .toolbar button.btn-print:hover { background: #fff; }
 
@@ -569,9 +573,9 @@
                 <button onclick="prevMonth()">◀ 이전</button>
                 <button onclick="nextMonth()">다음 ▶</button>
                 <button class="btn-today" onclick="goToday()">오늘</button>
-                <button class="auth-only btn-data" onclick="copyAsHTML()">게시판 복사</button>
-                <button class="auth-only btn-data" onclick="exportJSON()">내보내기</button>
-                <button class="auth-only btn-data" onclick="document.getElementById('importFile').click()">불러오기</button>
+                <button class="auth-only btn-copy" onclick="copyAsHTML()">게시판 복사</button>
+                <button class="auth-only btn-export" onclick="exportJSON()">내보내기</button>
+                <button class="auth-only btn-import" onclick="document.getElementById('importFile').click()">불러오기</button>
                 <button class="btn-print" onclick="window.print()">인쇄</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
                 <button id="authBtn" class="auth-btn" onclick="doLogin()">로그인</button>
