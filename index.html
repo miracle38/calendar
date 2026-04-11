@@ -513,7 +513,7 @@
                 <button class="auth-only" onclick="copyAsHTML()">게시판 복사</button>
                 <button class="auth-only" onclick="exportJSON()">내보내기</button>
                 <button class="auth-only" onclick="document.getElementById('importFile').click()">불러오기</button>
-                <button class="auth-only" onclick="window.print()">인쇄</button>
+                <button onclick="window.print()">인쇄</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
                 <button id="authBtn" class="auth-btn" onclick="doLogin()">로그인</button>
             </div>
