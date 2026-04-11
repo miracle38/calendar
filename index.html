@@ -537,6 +537,11 @@
             <div class="modal-body">
                 <div class="section-title">일정</div>
                 <div class="color-picker" id="colorPicker"></div>
+                <div class="event-form" id="eventForm">
+                    <textarea id="eventInput" placeholder="일정을 입력하세요 (Shift+Enter로 줄바꿈)" rows="1"></textarea>
+                    <button class="btn-add" onclick="addEvent()">추가</button>
+                </div>
+                <ul class="event-list" id="scheduleList"></ul>
                 <div class="section-title" style="margin-top:24px;">근태</div>
                 <div class="leave-options" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <button class="leave-btn type-vacation off" onclick="toggleLeave('vacation')">휴가</button>
@@ -555,11 +560,7 @@
                         <button class="leave-add-btn" onclick="addLeave()">추가</button>
                     </div>
                 </div>
-                <div class="event-form" id="eventForm">
-                    <textarea id="eventInput" placeholder="일정을 입력하세요 (Shift+Enter로 줄바꿈)" rows="1"></textarea>
-                    <button class="btn-add" onclick="addEvent()">추가</button>
-                </div>
-                <ul class="event-list" id="eventList"></ul>
+                <ul class="event-list" id="leaveList"></ul>
             </div>
         </div>
     </div>
@@ -925,13 +926,12 @@
         }
 
         function renderEventList() {
-            const list = document.getElementById('eventList');
+            const scheduleList = document.getElementById('scheduleList');
+            const leaveList = document.getElementById('leaveList');
             const dayEv = events[selectedDay] || [];
-            if (dayEv.length === 0) {
-                list.innerHTML = '<div class="no-events">등록된 일정이 없습니다</div>';
-                return;
-            }
-            list.innerHTML = dayEv.map((ev, i) => {
+            const isAuth = !!currentUser;
+
+            function renderItem(ev, i) {
                 const ci = typeof ev === 'object' ? (ev.color || 0) : 0;
                 const text = typeof ev === 'object' ? ev.text : ev;
                 const isLeave = typeof ev === 'object' && ev.leave;
@@ -942,12 +942,22 @@
                 const stLabel = st ? `<span class="status-label ${st}">${st === 'done' ? '완료' : '최종 완료'}</span>` : '';
                 const doneActive = st === 'done' ? ' active-done' : '';
                 const finalActive = st === 'final' ? ' active-final' : '';
-                const isAuth = !!currentUser;
                 const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
                 const deleteBtn = isAuth ? `<button class="event-delete" onclick="deleteEvent(${i})">&#10005;</button>` : '';
                 const editClick = isAuth ? `onclick="editEvent(${i})"` : '';
                 return `<li>${colorDot}${leaveLabel}<span ${editClick}>${text}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
-            }).join('');
+            }
+
+            const schedules = [];
+            const leaves = [];
+            dayEv.forEach((ev, i) => {
+                const isLeave = typeof ev === 'object' && ev.leave;
+                if (isLeave) leaves.push(renderItem(ev, i));
+                else schedules.push(renderItem(ev, i));
+            });
+
+            scheduleList.innerHTML = schedules.length ? schedules.join('') : '';
+            leaveList.innerHTML = leaves.length ? leaves.join('') : '';
         }
 
         function addLeave() {
