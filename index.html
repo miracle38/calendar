@@ -328,8 +328,9 @@
         }
 
         .status-label {
-            font-size: 0.85em; padding: 3px 8px; border-radius: 5px;
+            font-size: 0.85em; padding: 2px 6px; border-radius: 5px;
             font-weight: 600; flex-shrink: 0; white-space: nowrap;
+            display: inline; line-height: 1;
         }
 
         .status-label.done { background: #dbeafe; color: #2563eb; }
@@ -938,7 +939,7 @@
                 const st = (typeof ev === 'object' && ev.status) || null;
                 const leaveLabel = isLeave ? `<span class="li-leave ${lt}">${LEAVE_LABELS[lt]}</span>` : '';
                 const colorDot = isLeave ? '' : `<div class="li-color c${ci % 3}"></div>`;
-                const stLabel = st ? `<span class="status-label ${st}">${st === 'done' ? '완료' : '최종 완료'}</span>` : '';
+                const stLabel = st ? `<span class="status-label ${st}">${st === 'done' ? '완료' : '최종'}</span>` : '';
                 const doneActive = st === 'done' ? ' active-done' : '';
                 const finalActive = st === 'final' ? ' active-final' : '';
                 const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
