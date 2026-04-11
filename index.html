@@ -327,6 +327,7 @@
         .event-list li span { flex: 1; font-size: 0.9em; white-space: pre-line; line-height: 1.3; }
         .event-list li span.editable { cursor: pointer; }
         .event-list li span.editable:hover { text-decoration: underline; }
+        .event-list li span.leave-name { flex: none; }
 
         .edit-input {
             flex: 1; padding: 6px 10px;
@@ -1028,7 +1029,8 @@
                 const editClick = canEditText ? `onclick="editEvent(${i})"` : '';
                 const textClass = canEditText ? 'editable' : '';
                 const leaveTypeClick = (isAuth && isLeave) ? `onclick="cycleLeaveType(${i})"` : '';
-                return `<li>${colorDot}${isLeave ? `<span ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${textClass}" ${editClick}>${text}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
+                const nameClass = isLeave ? 'leave-name' : textClass;
+                return `<li>${colorDot}${isLeave ? `<span ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${text}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
             }
 
             const schedules = [];
