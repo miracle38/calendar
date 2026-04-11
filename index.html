@@ -946,7 +946,7 @@
                 const deleteBtn = isAuth ? `<button class="event-delete" onclick="deleteEvent(${i})">&#10005;</button>` : '';
                 const editClick = (isAuth && !isLeave) ? `onclick="editEvent(${i})"` : '';
                 const leaveTypeClick = (isAuth && isLeave) ? `onclick="cycleLeaveType(${i})"` : '';
-                return `<li>${colorDot}${isLeave ? `<span ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span ${editClick}>${text}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
+                return `<li>${colorDot}${isLeave ? `<span ${leaveTypeClick}>${leaveLabel}</span>` : ''}${stLabel}<span ${editClick}>${text}</span>${statusBtns}${deleteBtn}</li>`;
             }
 
             const schedules = [];
