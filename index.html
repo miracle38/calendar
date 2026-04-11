@@ -562,7 +562,7 @@
     <div class="calendar">
         <div class="calendar-header">
             <div>
-                <h1 id="calTitle"><img src="logo_v2.png" alt="지란지교소프트" style="height:1.5em; vertical-align:middle; margin-right:6px;"><span style="font-size:0.9em;">품질관리팀 2026년 4월 일정표</span></h1>
+                <h1 id="calTitle"><img src="logo_v2.png" alt="지란지교소프트" style="height:1.3em; vertical-align:middle; margin-right:6px;"><span style="font-size:0.9em;">품질관리팀 2026년 4월 일정표</span></h1>
                 <p id="calSubtitle">Quality Management Team · April 2026</p>
             </div>
             <div class="toolbar">
@@ -874,7 +874,7 @@
         }
 
         function updateHeader() {
-            document.getElementById('calTitle').innerHTML = `<img src="logo_v2.png" alt="지란지교소프트" style="height:1.5em; vertical-align:middle; margin-right:6px;"><span style="font-size:0.9em;">품질관리팀 ${currentYear}년 ${currentMonth}월 일정표</span>`;
+            document.getElementById('calTitle').innerHTML = `<img src="logo_v2.png" alt="지란지교소프트" style="height:1.3em; vertical-align:middle; margin-right:6px;"><span style="font-size:0.9em;">품질관리팀 ${currentYear}년 ${currentMonth}월 일정표</span>`;
             document.getElementById('calSubtitle').textContent = `Quality Management Team · ${MONTH_NAMES_EN[currentMonth - 1]} ${currentYear}`;
             document.title = `지란지교소프트 품질관리팀 ${currentYear}년 ${currentMonth}월 일정표`;
         }
