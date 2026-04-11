@@ -942,8 +942,9 @@
                 const finalActive = st === 'final' ? ' active-final' : '';
                 const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
                 const deleteBtn = isAuth ? `<button class="event-delete" onclick="deleteEvent(${i})">&#10005;</button>` : '';
-                const editClick = isAuth ? `onclick="editEvent(${i})"` : '';
-                return `<li>${colorDot}${leaveLabel}<span ${editClick}>${text}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
+                const editClick = (isAuth && !isLeave) ? `onclick="editEvent(${i})"` : '';
+                const leaveTypeClick = (isAuth && isLeave) ? `onclick="cycleLeaveType(${i})"` : '';
+                return `<li>${colorDot}${isLeave ? `<span ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span ${editClick}>${text}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
             }
 
             const schedules = [];
@@ -1022,6 +1023,17 @@
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textarea.blur(); }
                 if (e.key === 'Escape') { renderEventList(); }
             });
+        }
+
+        function cycleLeaveType(index) {
+            if (selectedDay === null) return;
+            const ev = events[selectedDay][index];
+            const types = ['vacation', 'am', 'pm'];
+            const curr = types.indexOf(ev.leaveType || 'vacation');
+            ev.leaveType = types[(curr + 1) % types.length];
+            saveEvents();
+            renderEventList();
+            renderCalendar();
         }
 
         function toggleStatus(index, type) {
