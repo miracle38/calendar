@@ -853,6 +853,10 @@
 
         let events = JSON.parse(localStorage.getItem(storageKey()) || '{}');
 
+        function escHtml(str) {
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
         function saveEvents() {
             localStorage.setItem(storageKey(), JSON.stringify(events));
             if (db) db.ref(dbPath()).set(JSON.stringify(events));
@@ -924,7 +928,7 @@
                 if (leaves.length > 0) {
                     leaveHtml = '<div class="leave-tags">' + leaves.map(ev => {
                         const lt = ev.leaveType || 'vacation';
-                        return `<span class="leave-tag ${lt}">${LEAVE_LABELS[lt]}: ${ev.text}</span>`;
+                        return `<span class="leave-tag ${lt}">${LEAVE_LABELS[lt]}: ${escHtml(ev.text)}</span>`;
                     }).join('') + '</div>';
                 }
 
@@ -939,7 +943,7 @@
                     else if (st === 'final') stHtml = '<span class="tag-status final">최종</span>';
                     const evIdx = dayEv.indexOf(ev);
                     const canDrag = currentUser ? 'draggable="true"' : '';
-                    evHtml += `<div class="event-tag c${ci % 3}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${text}"><span class="tag-text">${text}</span>${stHtml}</div>`;
+                    evHtml += `<div class="event-tag c${ci % 3}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}"><span class="tag-text">${escHtml(text)}</span>${stHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
@@ -1031,7 +1035,7 @@
                 const textClass = canEditText ? 'editable' : '';
                 const leaveTypeClick = (isAuth && isLeave) ? `onclick="cycleLeaveType(${i})"` : '';
                 const nameClass = isLeave ? 'leave-name' : textClass;
-                return `<li>${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${text}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
+                return `<li>${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${escHtml(text)}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
             }
 
             const schedules = [];
@@ -1143,6 +1147,7 @@
 
         function deleteEvent(index) {
             if (selectedDay === null) return;
+            if (!confirm('삭제하시겠습니까?')) return;
             events[selectedDay].splice(index, 1);
             if (events[selectedDay].length === 0) delete events[selectedDay];
             saveEvents();
@@ -1200,14 +1205,14 @@
                     const lt = ev.leaveType || 'vacation';
                     const lc = leaveColors[lt];
                     const label = LEAVE_LABELS[lt];
-                    leaveTagsHtml += `<span style="font-size:11px;padding:2px 6px;border-radius:4px;background:${lc.bg};color:${lc.color};font-weight:600;white-space:nowrap;">${label}: ${ev.text}</span>`;
+                    leaveTagsHtml += `<span style="font-size:11px;padding:2px 6px;border-radius:4px;background:${lc.bg};color:${lc.color};font-weight:600;white-space:nowrap;">${label}: ${escHtml(ev.text)}</span>`;
                 });
                 let cell = `<div style="display:flex;align-items:center;gap:4px;margin-bottom:5px;flex-wrap:wrap;${dateAlign}"><span style="font-weight:800;font-size:18px;color:${dateColor};">${d}</span>${holidayTagHtml}${leaveTagsHtml}</div>`;
 
                 // 일정
                 normal.forEach(ev => {
                     const ci = typeof ev === 'object' ? (ev.color || 0) : 0;
-                    const text = (typeof ev === 'object' ? ev.text : ev).replace(/\n/g, '<br>');
+                    const text = escHtml(typeof ev === 'object' ? ev.text : ev).replace(/\n/g, '<br>');
                     const st = typeof ev === 'object' ? ev.status : null;
                     let stHtml = '';
                     if (st === 'done') stHtml = ` <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${statusColors.done.bg};color:${statusColors.done.color};font-weight:700;">완료</span>`;
