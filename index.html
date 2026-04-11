@@ -1054,7 +1054,12 @@
                 const textClass = canEditText ? 'editable' : '';
                 const leaveTypeClick = (isAuth && isLeave) ? `onclick="cycleLeaveType(${i})"` : '';
                 const nameClass = isLeave ? 'leave-name' : textClass;
-                return `<li>${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${escHtml(text)}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
+                let displayText = escHtml(text);
+                if (!isLeave && text.indexOf('\n') !== -1) {
+                    const lines = text.split('\n');
+                    displayText = '<strong>' + escHtml(lines[0]) + '</strong>\n' + lines.slice(1).map(l => escHtml(l)).join('\n');
+                }
+                return `<li>${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${displayText}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
             }
 
             const schedules = [];
