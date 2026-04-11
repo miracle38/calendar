@@ -55,6 +55,8 @@
 
         .toolbar button:hover { background: rgba(255,255,255,0.35); }
         .auth-only { display: none; }
+        .toolbar button.btn-accent { background: rgba(255,255,255,0.85); color: #1e3c72; }
+        .toolbar button.btn-accent:hover { background: #fff; }
 
         .calendar-body { padding: 12px; }
 
@@ -510,11 +512,11 @@
             <div class="toolbar">
                 <button onclick="prevMonth()">◀ 이전</button>
                 <button onclick="nextMonth()">다음 ▶</button>
-                <button onclick="goToday()">오늘</button>
+                <button class="btn-accent" onclick="goToday()">오늘</button>
                 <button class="auth-only" onclick="copyAsHTML()">게시판 복사</button>
                 <button class="auth-only" onclick="exportJSON()">내보내기</button>
                 <button class="auth-only" onclick="document.getElementById('importFile').click()">불러오기</button>
-                <button onclick="window.print()">인쇄</button>
+                <button class="btn-accent" onclick="window.print()">인쇄</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
                 <button id="authBtn" class="auth-btn" onclick="doLogin()">로그인</button>
             </div>
