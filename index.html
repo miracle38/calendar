@@ -729,6 +729,7 @@
 
         function doLogin() {
             if (currentUser) {
+                if (!confirm('로그아웃 하시겠습니까?')) return;
                 firebase.auth().signOut();
             } else {
                 var provider = new firebase.auth.GoogleAuthProvider();
