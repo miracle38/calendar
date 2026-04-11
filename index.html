@@ -530,13 +530,11 @@
                 <div style="font-weight:bold; margin-bottom:6px;">구분</div>
                 <div class="color-picker" id="colorPicker"></div>
                 <div style="font-weight:bold; margin-bottom:6px; margin-top:10px;">근태</div>
-                <div class="leave-options">
+                <div class="leave-options" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <button class="leave-btn type-vacation off" onclick="toggleLeave('vacation')">휴가</button>
                     <button class="leave-btn type-am off" onclick="toggleLeave('am')">오전반차</button>
                     <button class="leave-btn type-pm off" onclick="toggleLeave('pm')">오후반차</button>
-                </div>
-                <div class="leave-form" id="leaveForm" style="display:none; margin-bottom:14px;">
-                    <div style="display:flex; gap:8px;">
+                    <div id="leaveForm" style="display:none; align-items:center; gap:8px;">
                         <select id="memberSelect">
                             <option value="">팀원 선택</option>
                             <option value="김해성">김해성</option>
@@ -887,7 +885,7 @@
                 document.querySelector(`.leave-btn.type-${selectedLeave}`).classList.remove('off');
                 document.querySelector(`.leave-btn.type-${selectedLeave}`).classList.add('on');
             }
-            document.getElementById('leaveForm').style.display = selectedLeave ? 'block' : 'none';
+            document.getElementById('leaveForm').style.display = selectedLeave ? 'flex' : 'none';
             document.getElementById('eventForm').style.display = selectedLeave ? 'none' : 'flex';
             if (selectedLeave) document.getElementById('memberSelect').value = '';
         }
