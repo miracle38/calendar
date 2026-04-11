@@ -680,7 +680,13 @@
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
+            const ALLOWED_EMAILS = ['miracle0938@gmail.com'];
             firebase.auth().onAuthStateChanged(function(user) {
+                if (user && ALLOWED_EMAILS.indexOf(user.email) === -1) {
+                    alert('허용되지 않은 계정입니다.');
+                    firebase.auth().signOut();
+                    return;
+                }
                 currentUser = user;
                 updateAuthUI();
                 renderCalendar();
