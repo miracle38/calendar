@@ -987,7 +987,17 @@
             if (selectedDay === null) return;
             const ev = events[selectedDay][index];
             const text = typeof ev === 'object' ? ev.text : ev;
-            const li = document.getElementById('eventList').children[index];
+            const isLeave = typeof ev === 'object' && ev.leave;
+            const listId = isLeave ? 'leaveList' : 'scheduleList';
+            const list = document.getElementById(listId);
+            const dayEv = events[selectedDay] || [];
+            let listIndex = 0;
+            for (let i = 0; i < index; i++) {
+                const e = dayEv[i];
+                const eIsLeave = typeof e === 'object' && e.leave;
+                if (isLeave === eIsLeave) listIndex++;
+            }
+            const li = list.children[listIndex];
             const span = li.querySelector('span');
             const textarea = document.createElement('textarea');
             textarea.className = 'edit-input';
