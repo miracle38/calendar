@@ -742,7 +742,7 @@
                 btn.textContent = currentUser.displayName || currentUser.email;
                 btn.classList.add('logged-in');
                 btn.title = '클릭하면 로그아웃';
-                authOnlyBtns.forEach(b => b.style.display = '');
+                authOnlyBtns.forEach(b => b.style.display = 'inline-block');
             } else {
                 btn.textContent = '로그인';
                 btn.classList.remove('logged-in');
