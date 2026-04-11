@@ -316,8 +316,9 @@
         .event-list li .li-color.c1 { background: var(--c2); }
         .event-list li .li-color.c2 { background: var(--c3); }
 
-        .event-list li span { flex: 1; font-size: 0.9em; white-space: pre-line; line-height: 1.3; cursor: pointer; }
-        .event-list li span:hover { text-decoration: underline; }
+        .event-list li span { flex: 1; font-size: 0.9em; white-space: pre-line; line-height: 1.3; }
+        .event-list li span.editable { cursor: pointer; }
+        .event-list li span.editable:hover { text-decoration: underline; }
 
         .edit-input {
             flex: 1; padding: 6px 10px;
@@ -944,9 +945,11 @@
                 const finalActive = st === 'final' ? ' active-final' : '';
                 const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
                 const deleteBtn = isAuth ? `<button class="event-delete" onclick="deleteEvent(${i})">&#10005;</button>` : '';
-                const editClick = (isAuth && !isLeave) ? `onclick="editEvent(${i})"` : '';
+                const canEditText = isAuth && !isLeave;
+                const editClick = canEditText ? `onclick="editEvent(${i})"` : '';
+                const textClass = canEditText ? 'editable' : '';
                 const leaveTypeClick = (isAuth && isLeave) ? `onclick="cycleLeaveType(${i})"` : '';
-                return `<li>${colorDot}${isLeave ? `<span ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span ${editClick}>${text}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
+                return `<li>${colorDot}${isLeave ? `<span ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${textClass}" ${editClick}>${text}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
             }
 
             const schedules = [];
