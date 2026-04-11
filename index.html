@@ -74,7 +74,7 @@
             display: grid;
             grid-template-columns: 0.15fr 1fr 1fr 1fr 1fr 1fr 0.15fr;
             text-align: center;
-            background: #f0eafc;
+            background: #e8f0fe;
         }
 
         .weekdays span {
@@ -1211,7 +1211,7 @@
             html += '<tr>';
             dayNames.forEach((name, i) => {
                 const w = (i === 0 || i === 6) ? narrowW : wideW;
-                html += `<td width="${w}" style="border:1px solid #d0d0d0;padding:14px 4px;text-align:center;font-weight:800;font-size:18px;background:#f0eafc;color:${dayColors[i]};">${name}</td>`;
+                html += `<td width="${w}" style="border:1px solid #d0d0d0;padding:14px 4px;text-align:center;font-weight:800;font-size:18px;background:#e8f0fe;color:${dayColors[i]};">${name}</td>`;
             });
             html += '</tr>';
 
