@@ -591,7 +591,10 @@
         <div class="modal">
             <div class="modal-header">
                 <h2 id="modalTitle">4월 1일</h2>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button id="clearAllBtn" class="auth-only" onclick="clearAllEvents()" style="background:rgba(255,255,255,0.2); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:0.8em; font-weight:600; cursor:pointer; font-family:inherit;">전체 삭제</button>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
             </div>
             <div class="modal-body">
                 <div class="section-title">📋 제품</div>
@@ -1010,6 +1013,16 @@
             renderColorPicker();
             renderEventList();
             if (isAuth) setTimeout(() => document.getElementById('eventInput').focus(), 100);
+        }
+
+        function clearAllEvents() {
+            if (selectedDay === null) return;
+            if (!events[selectedDay] || events[selectedDay].length === 0) { alert('삭제할 일정이 없습니다.'); return; }
+            if (!confirm('이 날짜의 모든 일정을 삭제하시겠습니까?')) return;
+            delete events[selectedDay];
+            saveEvents();
+            renderEventList();
+            renderCalendar();
         }
 
         function closeModal() {
