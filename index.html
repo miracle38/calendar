@@ -1127,37 +1127,74 @@
             if (selectedDay === null) return;
             const ev = events[selectedDay][index];
             const text = typeof ev === 'object' ? ev.text : ev;
+            const currentColor = typeof ev === 'object' ? (ev.color || 0) : 0;
             const isLeave = typeof ev === 'object' && ev.leave;
             const listId = isLeave ? 'leaveList' : 'scheduleList';
             const list = document.getElementById(listId);
             const dayEv = events[selectedDay] || [];
-            let listIndex = 0;
-            for (let i = 0; i < index; i++) {
-                const e = dayEv[i];
+
+            // 정렬된 목록에서 인덱스 찾기
+            const scheduleItems = [];
+            dayEv.forEach((e, i) => {
                 const eIsLeave = typeof e === 'object' && e.leave;
-                if (isLeave === eIsLeave) listIndex++;
-            }
+                if (!eIsLeave) scheduleItems.push({ ev: e, idx: i, color: (typeof e === 'object' ? (e.color || 0) : 0) });
+            });
+            scheduleItems.sort((a, b) => a.color - b.color);
+            const listIndex = scheduleItems.findIndex(s => s.idx === index);
+            if (listIndex < 0) return;
+
             const li = list.children[listIndex];
-            const span = li.querySelector('span');
+            // 기존 내용 교체
+            const colorDot = li.querySelector('.li-color');
+            const span = li.querySelector('span.editable');
+            if (!span) return;
+
+            // 편집 영역 생성
+            const editWrap = document.createElement('div');
+            editWrap.style.cssText = 'flex:1;display:flex;flex-direction:column;gap:6px;';
+
+            // 색상 선택 버튼
+            let editColor = currentColor;
+            const colorRow = document.createElement('div');
+            colorRow.style.cssText = 'display:flex;gap:4px;';
+            COLOR_NAMES.forEach((name, ci) => {
+                const btn = document.createElement('span');
+                btn.textContent = name;
+                btn.style.cssText = 'font-size:0.75em;padding:3px 8px;border-radius:4px;cursor:pointer;color:#fff;font-weight:600;opacity:' + (ci === editColor ? '1' : '0.4') + ';';
+                btn.style.background = getComputedStyle(document.documentElement).getPropertyValue('--c' + (ci + 1)).trim();
+                btn.onclick = function(e) {
+                    e.stopPropagation();
+                    editColor = ci;
+                    colorRow.querySelectorAll('span').forEach((s, si) => s.style.opacity = si === ci ? '1' : '0.4');
+                    if (colorDot) colorDot.className = 'li-color c' + (ci % 4);
+                };
+                colorRow.appendChild(btn);
+            });
+            editWrap.appendChild(colorRow);
+
+            // 텍스트 입력
             const textarea = document.createElement('textarea');
             textarea.className = 'edit-input';
             textarea.value = text;
-            span.replaceWith(textarea);
+            editWrap.appendChild(textarea);
+
+            span.replaceWith(editWrap);
             textarea.focus();
 
             function save() {
                 const newText = textarea.value.trim();
                 if (newText && typeof ev === 'object') {
                     ev.text = newText;
+                    ev.color = editColor;
                 } else if (newText) {
-                    events[selectedDay][index] = newText;
+                    events[selectedDay][index] = { text: newText, color: editColor };
                 }
                 saveEvents();
                 renderEventList();
                 renderCalendar();
             }
 
-            textarea.addEventListener('blur', save);
+            textarea.addEventListener('blur', function() { setTimeout(save, 150); });
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textarea.blur(); }
                 if (e.key === 'Escape') { renderEventList(); }
