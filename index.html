@@ -177,7 +177,7 @@
         }
 
         /* 일정 색상 */
-        .event-colors { --c1: #1d4ed8; --c2: #15803d; --c3: #be185d; }
+        .event-colors { --c1: #1d4ed8; --c2: #15803d; --c3: #be185d; --c4: #8b4513; }
 
         .day .event-tag {
             display: flex;
@@ -220,6 +220,7 @@
         .day .event-tag.c0 { background: var(--c1); }
         .day .event-tag.c1 { background: var(--c2); }
         .day .event-tag.c2 { background: var(--c3); }
+        .day .event-tag.c3 { background: var(--c4); }
 
         .day .event-more-tag {
             font-size: 0.7em;
@@ -299,6 +300,7 @@
         .color-dot.cd0 { background: var(--c1); }
         .color-dot.cd1 { background: var(--c2); }
         .color-dot.cd2 { background: var(--c3); }
+        .color-dot.cd3 { background: var(--c4); }
 
         .event-form .btn-add {
             align-self: flex-end;
@@ -328,6 +330,7 @@
         .event-list li .li-color.c0 { background: var(--c1); }
         .event-list li .li-color.c1 { background: var(--c2); }
         .event-list li .li-color.c2 { background: var(--c3); }
+        .event-list li .li-color.c3 { background: var(--c4); }
 
         .event-list li span { flex: 1; font-size: 0.9em; white-space: pre-line; line-height: 1.3; }
         .event-list li span.editable { cursor: pointer; }
@@ -741,7 +744,7 @@
         let selectedDay = null;
         let selectedColor = 0;
         let selectedLeave = null;
-        const COLOR_NAMES = ['지란지교소프트', '지란지교데이터', '기타'];
+        const COLOR_NAMES = ['지란지교소프트', '지란지교데이터', '기타', 'DirectCloud'];
         const LEAVE_LABELS = { vacation: '휴가', am: '오전반차', pm: '오후반차' };
         const MAX_VISIBLE = 6;
 
@@ -956,7 +959,7 @@
                     else if (st === 'final') stHtml = '<span class="tag-status final">최종</span>';
                     const evIdx = dayEv.indexOf(ev);
                     const canDrag = currentUser ? 'draggable="true"' : '';
-                    evHtml += `<div class="event-tag c${ci % 3}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}"><span class="tag-text">${escHtml(text)}</span>${stHtml}</div>`;
+                    evHtml += `<div class="event-tag c${ci % 4}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}"><span class="tag-text">${escHtml(text)}</span>${stHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
@@ -1047,7 +1050,7 @@
                 const lt = (typeof ev === 'object' && ev.leaveType) || 'vacation';
                 const st = (typeof ev === 'object' && ev.status) || null;
                 const leaveLabel = isLeave ? `<span class="li-leave ${lt}">${LEAVE_LABELS[lt]}</span>` : '';
-                const colorDot = isLeave ? '' : `<div class="li-color c${ci % 3}"></div>`;
+                const colorDot = isLeave ? '' : `<div class="li-color c${ci % 4}"></div>`;
                 const stLabel = st ? `<span class="status-label ${st}">${st === 'done' ? '완료' : '최종'}</span>` : '';
                 const doneActive = st === 'done' ? ' active-done' : '';
                 const finalActive = st === 'final' ? ' active-final' : '';
@@ -1191,7 +1194,7 @@
         function copyAsHTML() {
             const startOffset = new Date(currentYear, currentMonth - 1, 1).getDay();
             const totalDays = new Date(currentYear, currentMonth, 0).getDate();
-            const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#be185d' };
+            const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#be185d', 3: '#8b4513' };
             const leaveColors = { vacation: { bg: '#ffe0e6', color: '#d63031' }, am: { bg: '#e0f0ff', color: '#0984e3' }, pm: { bg: '#e8f5e9', color: '#27ae60' } };
             const statusColors = { done: { bg: '#fbbf24', color: '#333' }, final: { bg: '#f43f5e', color: '#fff' } };
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
@@ -1249,7 +1252,7 @@
                     let stHtml = '';
                     if (st === 'done') stHtml = ` <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${statusColors.done.bg};color:${statusColors.done.color};font-weight:700;">완료</span>`;
                     else if (st === 'final') stHtml = ` <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${statusColors.final.bg};color:${statusColors.final.color};font-weight:700;">최종</span>`;
-                    cell += `<div style="font-size:12px;padding:4px 7px;border-radius:4px;margin-bottom:5px;color:#fff;font-weight:500;background:${colors[ci % 3]};line-height:1.3;">${text}${stHtml}</div>`;
+                    cell += `<div style="font-size:12px;padding:4px 7px;border-radius:4px;margin-bottom:5px;color:#fff;font-weight:500;background:${colors[ci % 4]};line-height:1.3;">${text}${stHtml}</div>`;
                 });
 
                 cells.push({ html: cell, dow, empty: false });
