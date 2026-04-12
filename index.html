@@ -1077,13 +1077,15 @@
                 return `<li>${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${displayText}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
             }
 
-            const schedules = [];
+            const scheduleItems = [];
             const leaves = [];
             dayEv.forEach((ev, i) => {
                 const isLeave = typeof ev === 'object' && ev.leave;
                 if (isLeave) leaves.push(renderItem(ev, i));
-                else schedules.push(renderItem(ev, i));
+                else scheduleItems.push({ html: renderItem(ev, i), color: (typeof ev === 'object' ? (ev.color || 0) : 0) });
             });
+            scheduleItems.sort((a, b) => a.color - b.color);
+            const schedules = scheduleItems.map(s => s.html);
 
             scheduleList.innerHTML = schedules.length ? schedules.join('') : '<div class="no-events">등록된 제품 일정이 없습니다</div>';
             leaveList.innerHTML = leaves.length ? leaves.join('') : '<div class="no-events">등록된 연차가 없습니다</div>';
