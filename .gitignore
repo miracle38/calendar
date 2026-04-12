@@ -1,0 +1,9 @@
+node_modules/
+test-results/
+test-results-html/
+package-lock.json
+*.zip
+scripts/
+jiransoft_CI_jpg/
+jpg/
+png/
