@@ -179,7 +179,7 @@
         }
 
         /* 일정 색상 */
-        .event-colors { --c1: #1d4ed8; --c2: #15803d; --c3: #be185d; --c4: #8b4513; }
+        .event-colors { --c1: #1d4ed8; --c2: #15803d; --c3: #8b4513; --c4: #be185d; }
 
         .day .event-tag {
             display: flex;
@@ -1198,7 +1198,7 @@
         function copyAsHTML() {
             const startOffset = new Date(currentYear, currentMonth - 1, 1).getDay();
             const totalDays = new Date(currentYear, currentMonth, 0).getDate();
-            const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#be185d', 3: '#8b4513' };
+            const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#8b4513', 3: '#be185d' };
             const leaveColors = { vacation: { bg: '#ffe0e6', color: '#d63031' }, am: { bg: '#e0f0ff', color: '#0984e3' }, pm: { bg: '#e8f5e9', color: '#27ae60' } };
             const statusColors = { done: { bg: '#fbbf24', color: '#333' }, final: { bg: '#f43f5e', color: '#fff' } };
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
