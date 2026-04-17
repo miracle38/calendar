@@ -983,16 +983,43 @@
         let memoListenerActive = false;
         let memoData = { text: '', updatedAt: 0, updatedBy: '' };
 
-        function memoDbPath() { return 'calendar/_memo'; }
+        function memoDbPath() { return 'calendar/shared_memo'; }
+
+        function parseMemoValue(val) {
+            if (!val) return { text: '', updatedAt: 0, updatedBy: '' };
+            if (typeof val === 'string') {
+                try {
+                    const parsed = JSON.parse(val);
+                    if (parsed && typeof parsed === 'object') {
+                        return {
+                            text: typeof parsed.text === 'string' ? parsed.text : '',
+                            updatedAt: typeof parsed.updatedAt === 'number' ? parsed.updatedAt : 0,
+                            updatedBy: typeof parsed.updatedBy === 'string' ? parsed.updatedBy : ''
+                        };
+                    }
+                } catch (e) {
+                    return { text: val, updatedAt: 0, updatedBy: '' };
+                }
+            }
+            if (typeof val === 'object') {
+                return {
+                    text: typeof val.text === 'string' ? val.text : '',
+                    updatedAt: typeof val.updatedAt === 'number' ? val.updatedAt : 0,
+                    updatedBy: typeof val.updatedBy === 'string' ? val.updatedBy : ''
+                };
+            }
+            return { text: '', updatedAt: 0, updatedBy: '' };
+        }
 
         function setupMemoListener() {
             if (!db || memoListenerActive) return;
             memoListenerActive = true;
             db.ref(memoDbPath()).on('value', function(snapshot) {
-                const val = snapshot.val();
-                memoData = val && typeof val === 'object' ? val : { text: (typeof val === 'string' ? val : ''), updatedAt: 0, updatedBy: '' };
+                memoData = parseMemoValue(snapshot.val());
                 const overlay = document.getElementById('memoOverlay');
                 if (overlay && overlay.classList.contains('active')) renderMemo();
+            }, function(err) {
+                console.error('Memo 읽기 실패:', err);
             });
         }
 
@@ -1025,7 +1052,8 @@
         }
 
         function saveMemo() {
-            if (!currentUser || !db) return;
+            if (!currentUser) { alert('로그인이 필요합니다.'); return; }
+            if (!db) { alert('서버 연결이 되어있지 않습니다.'); return; }
             const ta = document.getElementById('memoText');
             const btn = document.getElementById('memoSaveBtn');
             const text = ta.value;
@@ -1036,13 +1064,14 @@
                 updatedAt: Date.now(),
                 updatedBy: currentUser.displayName || currentUser.email || ''
             };
-            db.ref(memoDbPath()).set(payload).then(function() {
+            db.ref(memoDbPath()).set(JSON.stringify(payload)).then(function() {
                 memoData = payload;
                 renderMemo();
                 btn.textContent = '저장됨 ✓';
                 setTimeout(function() { btn.disabled = false; btn.textContent = '저장'; }, 1200);
             }).catch(function(err) {
-                alert('저장 실패: ' + err.message);
+                console.error('Memo 저장 실패:', err);
+                alert('저장 실패: ' + (err && err.message ? err.message : err));
                 btn.disabled = false;
                 btn.textContent = '저장';
             });
