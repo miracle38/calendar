@@ -154,6 +154,15 @@
             font-family: Consolas, monospace; font-size: 0.92em;
         }
         .memo-editor mark { background: #fef08a; padding: 0 2px; border-radius: 2px; }
+        .memo-editor hr, .memo-editor .memo-hr {
+            border: none; border-top: 2px dashed #d1d5db;
+            margin: 0.8em 0; height: 0;
+        }
+        .memo-editor .memo-timestamp {
+            display: inline-block; padding: 1px 8px; margin-right: 2px;
+            background: #e0f2fe; color: #075985; border-radius: 4px;
+            font-size: 0.85em; font-weight: 600; font-family: Consolas, monospace;
+        }
         .memo-footer {
             display: flex; justify-content: space-between; align-items: center;
             gap: 10px; padding: 12px 22px 18px; flex-wrap: wrap;
@@ -753,6 +762,9 @@
                     <span class="tb-sep"></span>
                     <button type="button" data-cmd="highlight" title="형광펜">🖍</button>
                     <input type="color" id="memoColorPicker" title="글자색" value="#1f2937">
+                    <span class="tb-sep"></span>
+                    <button type="button" data-cmd="insertHr" title="구분선 삽입">— 구분선</button>
+                    <button type="button" data-cmd="insertTime" title="현재 시각 삽입">🕒 시각</button>
                     <span class="tb-sep"></span>
                     <button type="button" data-cmd="createLink" title="링크 삽입">🔗</button>
                     <button type="button" data-cmd="removeFormat" title="서식 제거">✕ᴀ</button>
@@ -1949,6 +1961,16 @@
                     exec('hiliteColor', '#fef08a');
                 } else if (cmd === 'formatBlock') {
                     exec('formatBlock', val);
+                } else if (cmd === 'insertHr') {
+                    exec('insertHTML', '<hr class="memo-hr">');
+                } else if (cmd === 'insertTime') {
+                    const now = new Date();
+                    const pad = n => String(n).padStart(2, '0');
+                    const stamp = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate())
+                        + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+                    const user = (currentUser && (currentUser.displayName || currentUser.email)) || '';
+                    const label = user ? stamp + ' · ' + user : stamp;
+                    exec('insertHTML', '<span class="memo-timestamp">[' + label + ']</span>&nbsp;');
                 } else {
                     exec(cmd, val);
                 }
