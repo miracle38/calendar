@@ -213,6 +213,20 @@
 
         .drag-hint.active { display: block; }
 
+        .copy-toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(21,128,61,0.92); color: #fff;
+            padding: 8px 20px; border-radius: 8px; font-size: 0.85em;
+            font-weight: 600; z-index: 300; pointer-events: none;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .copy-toast.show { opacity: 1; }
+
+        .event-tag.copy-flash, .leave-tag.copy-flash {
+            outline: 2px solid #15803d;
+            outline-offset: -1px;
+        }
+
         .day .event-tag .tag-text {
             flex: 1;
             white-space: pre-line;
@@ -566,6 +580,7 @@
         </div>
     </div>
     <div class="drag-hint" id="dragHint"></div>
+    <div class="copy-toast" id="copyToast">클립보드에 복사됨</div>
     <div class="calendar">
         <div class="calendar-header">
             <div>
@@ -1384,6 +1399,41 @@
         });
         window.addEventListener('blur', function() { copyModifier = false; });
 
+        // Alt(Option)+클릭으로 일정 텍스트 복사
+        calDays.addEventListener('click', function(e) {
+            if (!e.altKey) return;
+            const tag = e.target.closest('.event-tag, .leave-tag');
+            if (!tag) return;
+            e.preventDefault();
+            e.stopPropagation();
+
+            const day = tag.dataset.from;
+            const idx = parseInt(tag.dataset.idx);
+            const dayEv = events[day] || [];
+            const ev = dayEv[idx];
+            if (!ev) return;
+
+            const isLeave = typeof ev === 'object' && ev.leave;
+            let text;
+            if (isLeave) {
+                const lt = ev.leaveType || 'vacation';
+                text = LEAVE_LABELS[lt] + ': ' + ev.text;
+            } else {
+                text = typeof ev === 'object' ? ev.text : ev;
+            }
+
+            navigator.clipboard.writeText(text).then(function() {
+                tag.classList.add('copy-flash');
+                const toast = document.getElementById('copyToast');
+                toast.textContent = '복사됨: ' + (text.length > 30 ? text.substring(0, 30) + '…' : text);
+                toast.classList.add('show');
+                setTimeout(function() {
+                    tag.classList.remove('copy-flash');
+                    toast.classList.remove('show');
+                }, 1200);
+            });
+        });
+
         calDays.addEventListener('dragstart', function(e) {
             const tag = e.target.closest('.event-tag, .leave-tag');
             if (!tag) return;
@@ -1448,8 +1498,8 @@
 
         const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform) || /Mac/.test(navigator.userAgent);
         document.getElementById('dragHint').textContent = isMac
-            ? '드래그: 이동 · ⌥(Option)+드래그: 복사'
-            : '드래그: 이동 · Ctrl+드래그: 복사';
+            ? '드래그: 이동 · ⌥+드래그: 복사 · ⌥+클릭: 텍스트 복사'
+            : '드래그: 이동 · Ctrl+드래그: 복사 · Alt+클릭: 텍스트 복사';
 
         updateHeader();
         renderCalendar();
