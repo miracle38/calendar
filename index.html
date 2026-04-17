@@ -1374,6 +1374,16 @@
         const calDays = document.getElementById('calendarDays');
         const dragHint = document.getElementById('dragHint');
 
+        // Mac Chrome에서 drop 이벤트의 metaKey가 누락되는 문제 우회
+        let copyModifier = false;
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Control' || e.key === 'Meta') copyModifier = true;
+        });
+        document.addEventListener('keyup', function(e) {
+            if (e.key === 'Control' || e.key === 'Meta') copyModifier = false;
+        });
+        window.addEventListener('blur', function() { copyModifier = false; });
+
         calDays.addEventListener('dragstart', function(e) {
             const tag = e.target.closest('.event-tag, .leave-tag');
             if (!tag) return;
@@ -1426,7 +1436,7 @@
                 events[toDay].push(evCopy);
 
                 // Ctrl(Windows) 또는 Cmd(Mac) 누르면 복사, 아니면 이동
-                if (!e.ctrlKey && !e.metaKey) {
+                if (!copyModifier) {
                     events[fromDay].splice(idx, 1);
                     if (events[fromDay].length === 0) delete events[fromDay];
                 }
