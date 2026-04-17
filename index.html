@@ -992,6 +992,15 @@
         let currentUser = null;
         if (localStorage.getItem('loggedIn') === 'true') {
             document.querySelectorAll('.auth-only').forEach(b => b.classList.add('cached-show'));
+            const cachedLabel = localStorage.getItem('loggedInLabel');
+            if (cachedLabel) {
+                const authBtn = document.getElementById('authBtn');
+                if (authBtn) {
+                    authBtn.textContent = cachedLabel;
+                    authBtn.classList.add('logged-in');
+                    authBtn.title = '클릭하면 로그아웃';
+                }
+            }
         }
         try {
             firebase.initializeApp(firebaseConfig);
@@ -1052,17 +1061,20 @@
             const btn = document.getElementById('authBtn');
             const authOnlyBtns = document.querySelectorAll('.auth-only');
             if (currentUser) {
-                btn.textContent = currentUser.displayName || currentUser.email;
+                const label = currentUser.displayName || currentUser.email;
+                btn.textContent = label;
                 btn.classList.add('logged-in');
                 btn.title = '클릭하면 로그아웃';
                 authOnlyBtns.forEach(b => { b.classList.remove('cached-show'); b.style.display = 'inline-block'; });
                 localStorage.setItem('loggedIn', 'true');
+                localStorage.setItem('loggedInLabel', label);
             } else {
                 btn.textContent = '로그인';
                 btn.classList.remove('logged-in');
                 btn.title = 'Google 로그인';
                 authOnlyBtns.forEach(b => { b.classList.remove('cached-show'); b.style.display = 'none'; });
                 localStorage.removeItem('loggedIn');
+                localStorage.removeItem('loggedInLabel');
                 const memoOv = document.getElementById('memoOverlay');
                 if (memoOv && memoOv.classList.contains('active')) closeMemo();
             }
