@@ -1060,7 +1060,7 @@
         let memoListenerActive = false;
         let memoData = { text: '', updatedAt: 0, updatedBy: '' };
 
-        function memoDbPath() { return 'calendar/shared_memo'; }
+        function memoDbPath() { return 'calendar/2000_00'; }
 
         function parseMemoValue(val) {
             const def = { text: '', format: 'text', updatedAt: 0, updatedBy: '' };
@@ -1169,23 +1169,37 @@
                 btn.disabled = false; btn.textContent = '저장'; return;
             }
             console.log('[memo] saving', serialized.length, 'chars to', memoDbPath());
-            db.ref(memoDbPath()).set(serialized).then(function() {
+            const path = memoDbPath();
+            db.ref(path).set(serialized).then(function() {
+                console.log('[memo] set() resolved, verifying server state...');
+                db.ref(path).off('value');
+                memoListenerActive = false;
+                return db.ref(path).once('value');
+            }).then(function(snap) {
+                const remoteRaw = snap.val();
+                const remote = parseMemoValue(remoteRaw);
+                console.log('[memo] server echo:', remoteRaw, '→ parsed updatedAt=', remote.updatedAt, 'expected=', payload.updatedAt);
+                setupMemoListener();
+                if (remote.updatedAt !== payload.updatedAt) {
+                    throw new Error('서버에 저장되지 않았습니다. Firebase 규칙(calendar/' + path.split('/')[1] + ') 쓰기 권한을 확인하세요.');
+                }
                 memoData = payload;
                 renderMemo();
                 btn.textContent = '저장됨 ✓';
-                setMemoStatus('저장되었습니다 ✓', 'success');
+                setMemoStatus('저장되었습니다 ✓ (서버 확인 완료)', 'success');
                 setTimeout(function() {
                     btn.disabled = false; btn.textContent = '저장';
                     setMemoStatus('', '');
-                }, 2000);
+                }, 2500);
             }).catch(function(err) {
-                console.error('[memo] 저장 실패:', err);
+                console.error('[memo] 저장/확인 실패:', err);
+                setupMemoListener();
                 const code = err && err.code;
                 let msg;
                 if (code === 'PERMISSION_DENIED') {
-                    msg = '권한 거부 · Firebase 규칙에서 calendar/shared_memo 쓰기 권한을 확인하세요.';
+                    msg = '권한 거부 · Firebase 규칙에서 ' + path + ' 쓰기 권한을 확인하세요.';
                 } else {
-                    msg = '저장 실패: ' + (err && err.message ? err.message.substring(0, 80) : err);
+                    msg = (err && err.message ? err.message : String(err)).substring(0, 200);
                 }
                 setMemoStatus(msg, 'error');
                 btn.disabled = false;
