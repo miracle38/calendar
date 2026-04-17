@@ -1168,20 +1168,29 @@
                 setMemoStatus('직렬화 실패: ' + e.message, 'error');
                 btn.disabled = false; btn.textContent = '저장'; return;
             }
-            console.log('[memo] saving', serialized.length, 'chars to', memoDbPath());
             const path = memoDbPath();
+            const dbUrl = (firebaseConfig && firebaseConfig.databaseURL) || '';
+            console.log('[memo] saving', serialized.length, 'chars to', path);
             db.ref(path).set(serialized).then(function() {
-                console.log('[memo] set() resolved, verifying server state...');
-                db.ref(path).off('value');
-                memoListenerActive = false;
-                return db.ref(path).once('value');
-            }).then(function(snap) {
-                const remoteRaw = snap.val();
-                const remote = parseMemoValue(remoteRaw);
-                console.log('[memo] server echo:', remoteRaw, '→ parsed updatedAt=', remote.updatedAt, 'expected=', payload.updatedAt);
-                setupMemoListener();
+                console.log('[memo] SDK set() resolved. Verifying via REST...');
+                return currentUser.getIdToken();
+            }).then(function(token) {
+                const restUrl = dbUrl.replace(/\/$/, '') + '/' + path + '.json?auth=' + encodeURIComponent(token);
+                return fetch(restUrl, { cache: 'no-store' }).then(function(r) {
+                    return r.text().then(function(body) {
+                        return { status: r.status, body: body };
+                    });
+                });
+            }).then(function(res) {
+                console.log('[memo] REST verify: HTTP', res.status, 'body=', res.body);
+                if (res.status !== 200) {
+                    throw new Error('서버 응답 HTTP ' + res.status + ' · ' + res.body.substring(0, 150));
+                }
+                let serverVal;
+                try { serverVal = JSON.parse(res.body); } catch (e) { serverVal = res.body; }
+                const remote = parseMemoValue(serverVal);
                 if (remote.updatedAt !== payload.updatedAt) {
-                    throw new Error('서버에 저장되지 않았습니다. Firebase 규칙(calendar/' + path.split('/')[1] + ') 쓰기 권한을 확인하세요.');
+                    throw new Error('서버에 저장되지 않았습니다 · 서버값: ' + JSON.stringify(serverVal).substring(0, 100));
                 }
                 memoData = payload;
                 renderMemo();
@@ -1192,14 +1201,13 @@
                     setMemoStatus('', '');
                 }, 2500);
             }).catch(function(err) {
-                console.error('[memo] 저장/확인 실패:', err);
-                setupMemoListener();
+                console.error('[memo] 저장 실패:', err);
                 const code = err && err.code;
                 let msg;
                 if (code === 'PERMISSION_DENIED') {
-                    msg = '권한 거부 · Firebase 규칙에서 ' + path + ' 쓰기 권한을 확인하세요.';
+                    msg = '권한 거부 · Firebase 규칙에서 ' + path + ' 쓰기 권한 필요';
                 } else {
-                    msg = (err && err.message ? err.message : String(err)).substring(0, 200);
+                    msg = (err && err.message ? err.message : String(err)).substring(0, 240);
                 }
                 setMemoStatus(msg, 'error');
                 btn.disabled = false;
