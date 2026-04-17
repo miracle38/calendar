@@ -1399,13 +1399,14 @@
         });
         window.addEventListener('blur', function() { copyModifier = false; });
 
-        // Alt(Option)+클릭으로 일정 텍스트 복사
+        // Alt(Option)+클릭으로 일정 텍스트 복사 (캡처 단계에서 모달 열림 차단)
         calDays.addEventListener('click', function(e) {
             if (!e.altKey) return;
             const tag = e.target.closest('.event-tag, .leave-tag');
             if (!tag) return;
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
 
             const day = tag.dataset.from;
             const idx = parseInt(tag.dataset.idx);
@@ -1432,7 +1433,7 @@
                     toast.classList.remove('show');
                 }, 1200);
             });
-        });
+        }, true);
 
         calDays.addEventListener('dragstart', function(e) {
             const tag = e.target.closest('.event-tag, .leave-tag');
