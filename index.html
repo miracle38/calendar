@@ -481,6 +481,16 @@
             border-left: 3px solid #b45309;
             opacity: 0.75;
         }
+        body.d-delete-mode .event-list li:hover {
+            background: #fee2e2 !important;
+            box-shadow: inset 0 0 0 2px #dc2626;
+            cursor: not-allowed;
+        }
+        body.d-delete-mode .event-list li:hover::after {
+            content: " 🗑 삭제";
+            color: #dc2626; font-weight: 700; font-size: 0.85em;
+            margin-left: auto; padding-left: 8px;
+        }
         .event-list li.row-highlight {
             background: #dbeafe !important;
             box-shadow: inset 0 0 0 2px #2563eb;
@@ -585,19 +595,6 @@
             white-space: nowrap; flex-shrink: 0;
             text-shadow: 0 1px 2px rgba(0,0,0,0.35);
             line-height: 1;
-        }
-        .day .event-tag .tag-delete {
-            background: rgba(0,0,0,0.2); border: none;
-            color: rgba(255,255,255,0.9);
-            font-size: 1em; font-weight: 800; line-height: 1;
-            padding: 0 5px; margin-left: 4px;
-            border-radius: 3px; cursor: pointer;
-            font-family: inherit; flex-shrink: 0;
-            opacity: 0; transition: opacity 0.15s, background 0.15s;
-        }
-        .day .event-tag:hover .tag-delete { opacity: 1; }
-        .day .event-tag .tag-delete:hover {
-            background: rgba(220,38,38,0.9); color: #fff;
         }
 
         .event-list li .li-progress-wrap {
@@ -908,6 +905,7 @@
                 </div>
             </div>
             <div class="modal-body">
+                <div style="font-size:0.78em; color:#6b7280; margin-bottom:8px; text-align:right;">삭제: <kbd style="background:#f3f4f6;border:1px solid #d1d5db;border-radius:4px;padding:1px 6px;font-family:inherit;font-weight:700;color:#374151;">D</kbd> 키를 누른 채 항목 클릭</div>
                 <div class="section-title">📋 제품</div>
                 <div class="color-picker" id="colorPicker" style="margin-top:8px;"></div>
                 <div class="event-form" id="eventForm" style="margin-top:12px;">
@@ -1482,8 +1480,7 @@
                     const plannedTitle = isPlanned ? ' (예정)' : '';
                     const progressTitle = progress > 0 ? ' · ' + progress + '%' : '';
                     const progressHtml = progress > 0 ? `<div class="tag-progress"><div class="tag-progress-bar"><div class="tag-progress-fill" style="width:${progress}%"></div></div><span class="tag-progress-pct">${progress}%</span></div>` : '';
-                    const tagDelete = currentUser ? `<button class="tag-delete" title="삭제" onclick="deleteEventFromCal(event, ${d}, ${evIdx})">×</button>` : '';
-                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${tagDelete}${progressHtml}</div>`;
+                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${progressHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
@@ -1527,27 +1524,12 @@
 
         function handleDayClick(e, day) {
             if (e && e.altKey) return;
-            if (e && e.target && e.target.closest('.tag-delete')) return;
             const tag = e && e.target && e.target.closest('.event-tag');
             if (tag && !tag.classList.contains('leave-tag')) {
                 const idx = parseInt(tag.dataset.idx, 10);
                 if (!isNaN(idx)) { openModal(day, idx); return; }
             }
             openModal(day);
-        }
-
-        function deleteEventFromCal(e, day, idx) {
-            if (e) { e.stopPropagation(); e.preventDefault(); }
-            if (!currentUser) return;
-            if (!events[day] || !events[day][idx]) return;
-            const ev = events[day][idx];
-            const label = typeof ev === 'object' ? (ev.text || '') : ev;
-            if (!confirm('삭제하시겠습니까?\n\n' + label.substring(0, 80))) return;
-            events[day].splice(idx, 1);
-            if (events[day].length === 0) delete events[day];
-            saveEvents();
-            renderCalendar();
-            if (selectedDay !== null) renderEventList();
         }
 
         function openModal(day, editIdx) {
@@ -1625,7 +1607,7 @@
                 const doneActive = st === 'done' ? ' active-done' : '';
                 const finalActive = st === 'final' ? ' active-final' : '';
                 const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
-                const deleteBtn = isAuth ? `<button class="event-delete" onclick="deleteEvent(${i})">&#10005;</button>` : '';
+                const deleteBtn = '';
                 const canEditText = isAuth && !isLeave;
                 const editClick = canEditText ? `onclick="editEvent(${i})"` : '';
                 const textClass = canEditText ? 'editable' : '';
@@ -2170,6 +2152,56 @@
                 eventPlannedBox.parentElement.classList.toggle('checked', eventPlannedBox.checked);
             });
         }
+
+        // D+클릭 삭제 모드: D키 누른 상태에서 모달 리스트 항목 클릭 시 삭제
+        let dKeyDown = false;
+        function isTypingTarget(el) {
+            if (!el) return false;
+            const t = el.tagName;
+            return t === 'INPUT' || t === 'TEXTAREA' || el.isContentEditable;
+        }
+        document.addEventListener('keydown', function(e) {
+            if ((e.key === 'd' || e.key === 'D' || e.key === 'ㅇ') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                if (isTypingTarget(e.target)) return;
+                dKeyDown = true;
+                document.body.classList.add('d-delete-mode');
+            }
+        });
+        document.addEventListener('keyup', function(e) {
+            if (e.key === 'd' || e.key === 'D' || e.key === 'ㅇ') {
+                dKeyDown = false;
+                document.body.classList.remove('d-delete-mode');
+            }
+        });
+        window.addEventListener('blur', function() {
+            dKeyDown = false;
+            document.body.classList.remove('d-delete-mode');
+        });
+
+        function attachListDeleteHandler(listEl) {
+            if (!listEl || listEl.dataset.delWired) return;
+            listEl.dataset.delWired = '1';
+            listEl.addEventListener('click', function(e) {
+                if (!dKeyDown || !currentUser) return;
+                const li = e.target && e.target.closest('li[data-idx]');
+                if (!li) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const idx = parseInt(li.dataset.idx, 10);
+                if (isNaN(idx)) return;
+                if (!events[selectedDay] || !events[selectedDay][idx]) return;
+                const ev = events[selectedDay][idx];
+                const label = typeof ev === 'object' ? (ev.text || '') : ev;
+                if (!confirm('삭제하시겠습니까?\n\n' + String(label).substring(0, 80))) return;
+                events[selectedDay].splice(idx, 1);
+                if (events[selectedDay].length === 0) delete events[selectedDay];
+                saveEvents();
+                renderEventList();
+                renderCalendar();
+            }, true);
+        }
+        attachListDeleteHandler(document.getElementById('scheduleList'));
+        attachListDeleteHandler(document.getElementById('leaveList'));
 
         (function initProgressControls() {
             const range = document.getElementById('eventProgress');
