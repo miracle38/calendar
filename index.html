@@ -566,6 +566,13 @@
             height: 100%; background: rgba(255,255,255,0.95);
             border-radius: 2px; transition: width 0.2s;
         }
+        .day .event-tag .tag-progress-pct {
+            font-size: 0.75em; font-weight: 800;
+            padding: 1px 5px; margin-left: 4px;
+            background: rgba(255,255,255,0.88); color: #1f2937;
+            border-radius: 3px; white-space: nowrap;
+            flex-shrink: 0;
+        }
 
         .event-list li .li-progress-wrap {
             display: flex; align-items: center; gap: 6px;
@@ -1448,8 +1455,9 @@
                     const plannedCls = isPlanned ? ' planned' : '';
                     const plannedTitle = isPlanned ? ' (예정)' : '';
                     const progressTitle = progress > 0 ? ' · ' + progress + '%' : '';
+                    const progressPctHtml = progress > 0 ? `<span class="tag-progress-pct">${progress}%</span>` : '';
                     const progressHtml = progress > 0 ? `<div class="tag-progress"><div class="tag-progress-fill" style="width:${progress}%"></div></div>` : '';
-                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${progressHtml}</div>`;
+                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${progressPctHtml}${stHtml}${progressHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
