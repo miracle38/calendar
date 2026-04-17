@@ -1094,25 +1094,36 @@
         function setupMemoListener() {
             if (!db || memoListenerActive) return;
             memoListenerActive = true;
+            console.log('[memo] attaching listener to', memoDbPath());
             db.ref(memoDbPath()).on('value', function(snapshot) {
-                memoData = parseMemoValue(snapshot.val());
+                const raw = snapshot.val();
+                console.log('[memo] listener fired. raw=', raw, '(type=' + typeof raw + ')');
+                memoData = parseMemoValue(raw);
+                console.log('[memo] parsed memoData=', JSON.stringify(memoData).substring(0, 200));
                 const overlay = document.getElementById('memoOverlay');
-                if (overlay && overlay.classList.contains('active')) renderMemo();
+                const isActive = overlay && overlay.classList.contains('active');
+                console.log('[memo] overlay active?', isActive, '→', isActive ? 'rendering' : 'skip render');
+                if (isActive) renderMemo();
             }, function(err) {
-                console.error('Memo 읽기 실패:', err);
+                console.error('[memo] 읽기 실패:', err);
+                setMemoStatus('읽기 실패: ' + (err.message || err), 'error');
             });
         }
 
         function renderMemo() {
             const ed = document.getElementById('memoEditor');
             const meta = document.getElementById('memoMeta');
-            if (!ed || !meta) return;
+            console.log('[memo] renderMemo called. memoData.format=', memoData.format, 'text.length=', (memoData.text||'').length, 'active=', document.activeElement === ed);
+            if (!ed || !meta) { console.warn('[memo] editor or meta missing'); return; }
             if (document.activeElement !== ed) {
                 if (memoData.format === 'html') {
                     ed.innerHTML = memoData.text || '';
                 } else {
                     ed.textContent = memoData.text || '';
                 }
+                console.log('[memo] editor content set. innerHTML.length=', ed.innerHTML.length);
+            } else {
+                console.log('[memo] editor focused, skipped content update');
             }
             if (memoData.updatedAt) {
                 const d = new Date(memoData.updatedAt);
