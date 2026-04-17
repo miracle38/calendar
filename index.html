@@ -96,14 +96,64 @@
             font-size: 1.5em; cursor: pointer; opacity: 0.85;
         }
         .memo-header .memo-close:hover { opacity: 1; }
-        .memo-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; }
-        .memo-body textarea {
-            width: 100%; min-height: 280px; max-height: 50vh;
-            padding: 14px 16px; border: 2px solid #e0e0e0;
-            border-radius: 10px; font-size: 1em; font-family: inherit;
-            outline: none; resize: vertical; line-height: 1.55;
+        .memo-body { padding: 14px 22px 18px; display: flex; flex-direction: column; gap: 8px; }
+
+        .memo-toolbar {
+            display: flex; flex-wrap: wrap; gap: 3px; align-items: center;
+            padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 10px 10px 0 0;
+            background: #fafafa; border-bottom: none;
         }
-        .memo-body textarea:focus { border-color: #b45309; }
+        .memo-toolbar button, .memo-toolbar select {
+            background: #fff; border: 1px solid transparent; border-radius: 6px;
+            padding: 5px 9px; cursor: pointer; font-family: inherit;
+            font-size: 0.9em; color: #374151; font-weight: 600;
+            min-width: 30px; transition: all 0.12s;
+        }
+        .memo-toolbar button:hover { background: #fef3c7; border-color: #fcd34d; color: #78350f; }
+        .memo-toolbar button:active { background: #fde68a; }
+        .memo-toolbar button.active { background: #fde68a; color: #78350f; border-color: #b45309; }
+        .memo-toolbar .tb-sep {
+            width: 1px; height: 20px; background: #d1d5db; margin: 0 3px;
+        }
+        .memo-toolbar input[type=color] {
+            width: 28px; height: 26px; padding: 0; border: 1px solid #e5e7eb;
+            border-radius: 5px; cursor: pointer; background: #fff;
+        }
+        .memo-toolbar .tb-bold { font-weight: 800; }
+        .memo-toolbar .tb-italic { font-style: italic; }
+        .memo-toolbar .tb-underline { text-decoration: underline; }
+        .memo-toolbar .tb-strike { text-decoration: line-through; }
+
+        .memo-editor {
+            width: 100%; min-height: 280px; max-height: 50vh;
+            padding: 14px 16px; border: 1px solid #e5e7eb;
+            border-radius: 0 0 10px 10px;
+            font-size: 1em; font-family: inherit;
+            outline: none; overflow-y: auto; line-height: 1.6;
+            background: #fff;
+        }
+        .memo-editor:focus { border-color: #b45309; box-shadow: 0 0 0 2px rgba(180,83,9,0.12); }
+        .memo-editor:empty::before {
+            content: attr(data-placeholder); color: #9ca3af; pointer-events: none;
+        }
+        .memo-editor h1, .memo-editor h2, .memo-editor h3 {
+            margin: 0.5em 0 0.3em; font-weight: 700; color: #1f2937;
+        }
+        .memo-editor h1 { font-size: 1.4em; }
+        .memo-editor h2 { font-size: 1.2em; }
+        .memo-editor h3 { font-size: 1.05em; }
+        .memo-editor ul, .memo-editor ol { margin: 0.3em 0; padding-left: 1.6em; }
+        .memo-editor li { margin: 0.15em 0; }
+        .memo-editor blockquote {
+            border-left: 3px solid #b45309; margin: 0.5em 0; padding: 0.3em 0.8em;
+            color: #4b5563; background: #fffbeb;
+        }
+        .memo-editor a { color: #2563eb; text-decoration: underline; }
+        .memo-editor code {
+            background: #f3f4f6; padding: 1px 6px; border-radius: 4px;
+            font-family: Consolas, monospace; font-size: 0.92em;
+        }
+        .memo-editor mark { background: #fef08a; padding: 0 2px; border-radius: 2px; }
         .memo-footer {
             display: flex; justify-content: space-between; align-items: center;
             gap: 10px; padding: 12px 22px 18px;
@@ -684,7 +734,30 @@
                 <button class="memo-close" onclick="closeMemo()">&times;</button>
             </div>
             <div class="memo-body">
-                <textarea id="memoText" placeholder="로그인한 팀원끼리 공유되는 메모입니다."></textarea>
+                <div class="memo-toolbar" id="memoToolbar">
+                    <button type="button" class="tb-bold" data-cmd="bold" title="굵게 (Ctrl+B)">B</button>
+                    <button type="button" class="tb-italic" data-cmd="italic" title="기울임 (Ctrl+I)">I</button>
+                    <button type="button" class="tb-underline" data-cmd="underline" title="밑줄 (Ctrl+U)">U</button>
+                    <button type="button" class="tb-strike" data-cmd="strikeThrough" title="취소선">S</button>
+                    <span class="tb-sep"></span>
+                    <button type="button" data-cmd="formatBlock" data-val="h2" title="제목">H1</button>
+                    <button type="button" data-cmd="formatBlock" data-val="h3" title="작은 제목">H2</button>
+                    <button type="button" data-cmd="formatBlock" data-val="p" title="본문">¶</button>
+                    <span class="tb-sep"></span>
+                    <button type="button" data-cmd="insertUnorderedList" title="글머리 기호">• 목록</button>
+                    <button type="button" data-cmd="insertOrderedList" title="번호 매기기">1. 목록</button>
+                    <button type="button" data-cmd="formatBlock" data-val="blockquote" title="인용구">❝</button>
+                    <span class="tb-sep"></span>
+                    <button type="button" data-cmd="highlight" title="형광펜">🖍</button>
+                    <input type="color" id="memoColorPicker" title="글자색" value="#1f2937">
+                    <span class="tb-sep"></span>
+                    <button type="button" data-cmd="createLink" title="링크 삽입">🔗</button>
+                    <button type="button" data-cmd="removeFormat" title="서식 제거">✕ᴀ</button>
+                    <span class="tb-sep"></span>
+                    <button type="button" data-cmd="undo" title="되돌리기 (Ctrl+Z)">↶</button>
+                    <button type="button" data-cmd="redo" title="다시 실행 (Ctrl+Y)">↷</button>
+                </div>
+                <div class="memo-editor" id="memoEditor" contenteditable="true" data-placeholder="로그인한 팀원끼리 공유되는 메모입니다. 서식을 자유롭게 사용하세요."></div>
             </div>
             <div class="memo-footer">
                 <span class="memo-meta" id="memoMeta"></span>
@@ -986,29 +1059,32 @@
         function memoDbPath() { return 'calendar/shared_memo'; }
 
         function parseMemoValue(val) {
-            if (!val) return { text: '', updatedAt: 0, updatedBy: '' };
+            const def = { text: '', format: 'text', updatedAt: 0, updatedBy: '' };
+            if (!val) return def;
             if (typeof val === 'string') {
                 try {
                     const parsed = JSON.parse(val);
                     if (parsed && typeof parsed === 'object') {
                         return {
                             text: typeof parsed.text === 'string' ? parsed.text : '',
+                            format: parsed.format === 'html' ? 'html' : 'text',
                             updatedAt: typeof parsed.updatedAt === 'number' ? parsed.updatedAt : 0,
                             updatedBy: typeof parsed.updatedBy === 'string' ? parsed.updatedBy : ''
                         };
                     }
                 } catch (e) {
-                    return { text: val, updatedAt: 0, updatedBy: '' };
+                    return Object.assign({}, def, { text: val });
                 }
             }
             if (typeof val === 'object') {
                 return {
                     text: typeof val.text === 'string' ? val.text : '',
+                    format: val.format === 'html' ? 'html' : 'text',
                     updatedAt: typeof val.updatedAt === 'number' ? val.updatedAt : 0,
                     updatedBy: typeof val.updatedBy === 'string' ? val.updatedBy : ''
                 };
             }
-            return { text: '', updatedAt: 0, updatedBy: '' };
+            return def;
         }
 
         function setupMemoListener() {
@@ -1024,10 +1100,16 @@
         }
 
         function renderMemo() {
-            const ta = document.getElementById('memoText');
+            const ed = document.getElementById('memoEditor');
             const meta = document.getElementById('memoMeta');
-            if (!ta || !meta) return;
-            if (document.activeElement !== ta) ta.value = memoData.text || '';
+            if (!ed || !meta) return;
+            if (document.activeElement !== ed) {
+                if (memoData.format === 'html') {
+                    ed.innerHTML = memoData.text || '';
+                } else {
+                    ed.textContent = memoData.text || '';
+                }
+            }
             if (memoData.updatedAt) {
                 const d = new Date(memoData.updatedAt);
                 const ts = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0')
@@ -1044,7 +1126,7 @@
             setupMemoListener();
             document.getElementById('memoOverlay').classList.add('active');
             renderMemo();
-            setTimeout(() => document.getElementById('memoText').focus(), 100);
+            setTimeout(() => document.getElementById('memoEditor').focus(), 100);
         }
 
         function closeMemo() {
@@ -1054,13 +1136,14 @@
         function saveMemo() {
             if (!currentUser) { alert('로그인이 필요합니다.'); return; }
             if (!db) { alert('서버 연결이 되어있지 않습니다.'); return; }
-            const ta = document.getElementById('memoText');
+            const ed = document.getElementById('memoEditor');
             const btn = document.getElementById('memoSaveBtn');
-            const text = ta.value;
+            const text = ed.innerHTML;
             btn.disabled = true;
             btn.textContent = '저장 중...';
             const payload = {
                 text: text,
+                format: 'html',
                 updatedAt: Date.now(),
                 updatedBy: currentUser.displayName || currentUser.email || ''
             };
@@ -1780,6 +1863,98 @@
                 eventPlannedBox.parentElement.classList.toggle('checked', eventPlannedBox.checked);
             });
         }
+
+        (function initMemoEditor() {
+            const toolbar = document.getElementById('memoToolbar');
+            const editor = document.getElementById('memoEditor');
+            const colorPicker = document.getElementById('memoColorPicker');
+            if (!toolbar || !editor) return;
+
+            function exec(cmd, val) {
+                editor.focus();
+                document.execCommand(cmd, false, val == null ? null : val);
+                updateToolbarState();
+            }
+
+            toolbar.addEventListener('mousedown', function(e) {
+                const btn = e.target.closest('button[data-cmd]');
+                if (!btn) return;
+                e.preventDefault();
+                const cmd = btn.dataset.cmd;
+                const val = btn.dataset.val || null;
+                if (cmd === 'createLink') {
+                    const url = prompt('링크 URL을 입력하세요:', 'https://');
+                    if (url) exec('createLink', url);
+                } else if (cmd === 'highlight') {
+                    exec('hiliteColor', '#fef08a');
+                } else if (cmd === 'formatBlock') {
+                    exec('formatBlock', val);
+                } else {
+                    exec(cmd, val);
+                }
+            });
+
+            if (colorPicker) {
+                colorPicker.addEventListener('input', function() {
+                    exec('foreColor', colorPicker.value);
+                });
+            }
+
+            editor.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey) {
+                    const k = e.key.toLowerCase();
+                    if (k === 'b') { e.preventDefault(); exec('bold'); }
+                    else if (k === 'i') { e.preventDefault(); exec('italic'); }
+                    else if (k === 'u') { e.preventDefault(); exec('underline'); }
+                }
+            });
+
+            editor.addEventListener('paste', function(e) {
+                const html = e.clipboardData && e.clipboardData.getData('text/html');
+                const plain = e.clipboardData && e.clipboardData.getData('text/plain');
+                if (html) {
+                    e.preventDefault();
+                    const clean = sanitizeHtml(html);
+                    document.execCommand('insertHTML', false, clean);
+                } else if (plain) {
+                    e.preventDefault();
+                    document.execCommand('insertText', false, plain);
+                }
+            });
+
+            function sanitizeHtml(html) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                tmp.querySelectorAll('script, style, meta, link, iframe, object, embed').forEach(el => el.remove());
+                tmp.querySelectorAll('*').forEach(el => {
+                    [...el.attributes].forEach(attr => {
+                        const n = attr.name.toLowerCase();
+                        if (n.startsWith('on')) el.removeAttribute(attr.name);
+                        if (n === 'href' && /^\s*javascript:/i.test(attr.value)) el.removeAttribute(attr.name);
+                        if (n === 'src' && /^\s*javascript:/i.test(attr.value)) el.removeAttribute(attr.name);
+                        if (n === 'class' || n === 'id') el.removeAttribute(attr.name);
+                    });
+                });
+                return tmp.innerHTML;
+            }
+
+            function updateToolbarState() {
+                const cmds = ['bold', 'italic', 'underline', 'strikeThrough'];
+                cmds.forEach(cmd => {
+                    const btn = toolbar.querySelector(`button[data-cmd="${cmd}"]`);
+                    if (!btn) return;
+                    try {
+                        btn.classList.toggle('active', document.queryCommandState(cmd));
+                    } catch (e) {}
+                });
+            }
+
+            editor.addEventListener('keyup', updateToolbarState);
+            editor.addEventListener('mouseup', updateToolbarState);
+            document.addEventListener('selectionchange', function() {
+                if (document.activeElement === editor) updateToolbarState();
+            });
+        })();
 
         updateHeader();
         renderCalendar();
