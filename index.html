@@ -554,6 +554,59 @@
         .tag-status.done { background: #fbbf24; color: #333; }
         .tag-status.final { background: #f43f5e; color: #fff; }
 
+        /* 진행률 게이지 */
+        .day .event-tag { position: relative; padding-bottom: 7px; }
+        .day .event-tag .tag-progress {
+            position: absolute; left: 2px; right: 2px; bottom: 1px;
+            height: 3px; border-radius: 2px;
+            background: rgba(255,255,255,0.25);
+            overflow: hidden;
+        }
+        .day .event-tag .tag-progress-fill {
+            height: 100%; background: rgba(255,255,255,0.95);
+            border-radius: 2px; transition: width 0.2s;
+        }
+
+        .event-list li .li-progress-wrap {
+            display: flex; align-items: center; gap: 6px;
+            flex: 0 0 auto;
+        }
+        .event-list li .li-progress-bar {
+            width: 90px; height: 8px; background: #e5e7eb;
+            border-radius: 5px; overflow: hidden;
+        }
+        .event-list li .li-progress-fill {
+            height: 100%; border-radius: 5px; transition: width 0.2s;
+            background: linear-gradient(90deg, #60a5fa 0%, #2563eb 100%);
+        }
+        .event-list li .li-progress-fill.done { background: linear-gradient(90deg, #34d399, #059669); }
+        .event-list li .li-progress-value {
+            font-size: 0.8em; font-weight: 700; color: #374151;
+            min-width: 34px; text-align: right;
+        }
+        .progress-edit-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 4px 0; flex-wrap: wrap;
+        }
+        .progress-edit-row label { font-size: 0.85em; font-weight: 600; color: #1e3c72; }
+        .progress-edit-row input[type=range] {
+            flex: 1; min-width: 140px; accent-color: #2563eb;
+        }
+        .progress-edit-row .prog-num {
+            font-size: 0.85em; font-weight: 700; color: #2563eb;
+            min-width: 42px; text-align: right;
+        }
+        .progress-edit-row .prog-preset {
+            display: flex; gap: 3px; flex-wrap: wrap;
+        }
+        .progress-edit-row .prog-preset button {
+            padding: 3px 8px; border: 1px solid #cbd5e1;
+            border-radius: 5px; background: #fff;
+            font-size: 0.75em; cursor: pointer; font-family: inherit;
+            font-weight: 600; color: #475569;
+        }
+        .progress-edit-row .prog-preset button:hover { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
+
         .event-delete {
             background: none; border: none; color: #e74c3c;
             font-size: 1.1em; cursor: pointer; opacity: 0.5; padding: 2px 6px;
@@ -826,6 +879,18 @@
                 <div class="color-picker" id="colorPicker" style="margin-top:8px;"></div>
                 <div class="event-form" id="eventForm" style="margin-top:12px;">
                     <textarea id="eventInput" placeholder="일정을 입력하세요 (Shift+Enter로 줄바꿈)" rows="1"></textarea>
+                    <div class="progress-edit-row">
+                        <label for="eventProgress">진행률</label>
+                        <input type="range" id="eventProgress" min="0" max="100" step="5" value="0">
+                        <span class="prog-num" id="eventProgressNum">0%</span>
+                        <div class="prog-preset">
+                            <button type="button" data-p="0">0</button>
+                            <button type="button" data-p="25">25</button>
+                            <button type="button" data-p="50">50</button>
+                            <button type="button" data-p="75">75</button>
+                            <button type="button" data-p="100">100</button>
+                        </div>
+                    </div>
                     <div class="event-form-row">
                         <label class="planned-check" title="로그인 사용자만 볼 수 있는 비공개 예정 항목">
                             <input type="checkbox" id="eventPlanned">
@@ -1374,6 +1439,7 @@
                     const text = typeof ev === 'object' ? ev.text : ev;
                     const st = typeof ev === 'object' ? ev.status : null;
                     const isPlanned = typeof ev === 'object' && ev.planned;
+                    const progress = typeof ev === 'object' && typeof ev.progress === 'number' ? Math.max(0, Math.min(100, ev.progress)) : 0;
                     let stHtml = '';
                     if (st === 'done') stHtml = '<span class="tag-status done">완료</span>';
                     else if (st === 'final') stHtml = '<span class="tag-status final">최종</span>';
@@ -1381,7 +1447,9 @@
                     const canDrag = currentUser ? 'draggable="true"' : '';
                     const plannedCls = isPlanned ? ' planned' : '';
                     const plannedTitle = isPlanned ? ' (예정)' : '';
-                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}</div>`;
+                    const progressTitle = progress > 0 ? ' · ' + progress + '%' : '';
+                    const progressHtml = progress > 0 ? `<div class="tag-progress"><div class="tag-progress-fill" style="width:${progress}%"></div></div>` : '';
+                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${progressHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
@@ -1434,6 +1502,10 @@
             document.getElementById('eventInput').value = '';
             const plannedBox = document.getElementById('eventPlanned');
             if (plannedBox) { plannedBox.checked = false; plannedBox.parentElement.classList.remove('checked'); }
+            const progRange = document.getElementById('eventProgress');
+            const progNum = document.getElementById('eventProgressNum');
+            if (progRange) progRange.value = 0;
+            if (progNum) progNum.textContent = '0%';
             document.querySelectorAll('.leave-btn').forEach(btn => { btn.classList.remove('on'); btn.classList.add('off'); });
             document.getElementById('leaveForm').style.display = 'none';
             document.getElementById('memberSelect').value = '';
@@ -1472,12 +1544,14 @@
                 const text = typeof ev === 'object' ? ev.text : ev;
                 const isLeave = typeof ev === 'object' && ev.leave;
                 const isPlanned = typeof ev === 'object' && ev.planned;
+                const progress = typeof ev === 'object' && typeof ev.progress === 'number' ? Math.max(0, Math.min(100, ev.progress)) : 0;
                 const lt = (typeof ev === 'object' && ev.leaveType) || 'vacation';
                 const st = (typeof ev === 'object' && ev.status) || null;
                 const leaveLabel = isLeave ? `<span class="li-leave ${lt}">${LEAVE_LABELS[lt]}</span>` : '';
                 const colorDot = isLeave ? '' : `<div class="li-color c${ci % 4}"></div>`;
                 const stLabel = st ? `<span class="status-label ${st}">${st === 'done' ? '완료' : '최종'}</span>` : '';
                 const plannedBadge = isPlanned ? '<span class="li-planned-badge">🔒 예정</span>' : '';
+                const progressHtml = (!isLeave && progress > 0) ? `<span class="li-progress-wrap"><span class="li-progress-bar"><span class="li-progress-fill${progress === 100 ? ' done' : ''}" style="width:${progress}%"></span></span><span class="li-progress-value">${progress}%</span></span>` : '';
                 const doneActive = st === 'done' ? ' active-done' : '';
                 const finalActive = st === 'final' ? ' active-final' : '';
                 const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
@@ -1497,7 +1571,7 @@
                 } else {
                     displayText = escHtml(text);
                 }
-                return `<li${rowCls}>${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${displayText}</span>${plannedBadge}${stLabel}${statusBtns}${deleteBtn}</li>`;
+                return `<li${rowCls}>${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${displayText}</span>${progressHtml}${plannedBadge}${stLabel}${statusBtns}${deleteBtn}</li>`;
             }
 
             const scheduleItems = [];
@@ -1542,12 +1616,18 @@
             if (!events[selectedDay]) events[selectedDay] = [];
             const plannedBox = document.getElementById('eventPlanned');
             const planned = !!(plannedBox && plannedBox.checked);
+            const progRange = document.getElementById('eventProgress');
+            const progNum = document.getElementById('eventProgressNum');
+            const progress = progRange ? parseInt(progRange.value, 10) || 0 : 0;
             const newEv = { text, color: selectedColor };
             if (planned) newEv.planned = true;
+            if (progress > 0) newEv.progress = progress;
             events[selectedDay].push(newEv);
             saveEvents();
             input.value = '';
             input.focus();
+            if (progRange) progRange.value = 0;
+            if (progNum) progNum.textContent = '0%';
             renderEventList();
             renderCalendar();
         }
@@ -1626,6 +1706,45 @@
             plannedLabel.appendChild(plannedSpan);
             editWrap.appendChild(plannedLabel);
 
+            // 진행률 슬라이더
+            const currentProgress = typeof ev === 'object' && typeof ev.progress === 'number' ? Math.max(0, Math.min(100, ev.progress)) : 0;
+            let editProgress = currentProgress;
+            const progRow = document.createElement('div');
+            progRow.className = 'progress-edit-row';
+            const progLabel = document.createElement('label');
+            progLabel.textContent = '진행률';
+            const progRange = document.createElement('input');
+            progRange.type = 'range';
+            progRange.min = '0'; progRange.max = '100'; progRange.step = '5';
+            progRange.value = String(editProgress);
+            const progNum = document.createElement('span');
+            progNum.className = 'prog-num';
+            progNum.textContent = editProgress + '%';
+            progRange.addEventListener('input', function() {
+                editProgress = parseInt(progRange.value, 10) || 0;
+                progNum.textContent = editProgress + '%';
+            });
+            const presets = document.createElement('div');
+            presets.className = 'prog-preset';
+            [0, 25, 50, 75, 100].forEach(p => {
+                const pb = document.createElement('button');
+                pb.type = 'button';
+                pb.textContent = String(p);
+                pb.addEventListener('mousedown', function(e) { e.preventDefault(); });
+                pb.addEventListener('click', function(e) {
+                    e.preventDefault(); e.stopPropagation();
+                    editProgress = p;
+                    progRange.value = String(p);
+                    progNum.textContent = p + '%';
+                });
+                presets.appendChild(pb);
+            });
+            progRow.appendChild(progLabel);
+            progRow.appendChild(progRange);
+            progRow.appendChild(progNum);
+            progRow.appendChild(presets);
+            editWrap.appendChild(progRow);
+
             span.replaceWith(editWrap);
             textarea.focus();
 
@@ -1635,9 +1754,11 @@
                     ev.text = newText;
                     ev.color = editColor;
                     if (editPlanned) ev.planned = true; else delete ev.planned;
+                    if (editProgress > 0) ev.progress = editProgress; else delete ev.progress;
                 } else if (newText) {
                     const next = { text: newText, color: editColor };
                     if (editPlanned) next.planned = true;
+                    if (editProgress > 0) next.progress = editProgress;
                     events[selectedDay][index] = next;
                 }
                 saveEvents();
@@ -1645,10 +1766,23 @@
                 renderCalendar();
             }
 
-            textarea.addEventListener('blur', function() { setTimeout(save, 150); });
+            textarea.addEventListener('blur', function() {
+                setTimeout(function() {
+                    const active = document.activeElement;
+                    if (editWrap.contains(active)) return;
+                    save();
+                }, 150);
+            });
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textarea.blur(); }
                 if (e.key === 'Escape') { renderEventList(); }
+            });
+            progRange.addEventListener('change', function() {
+                setTimeout(function() {
+                    const active = document.activeElement;
+                    if (editWrap.contains(active)) return;
+                    save();
+                }, 150);
             });
         }
 
@@ -1743,10 +1877,15 @@
                     const ci = typeof ev === 'object' ? (ev.color || 0) : 0;
                     const text = escHtml(typeof ev === 'object' ? ev.text : ev).replace(/\n/g, '<br>');
                     const st = typeof ev === 'object' ? ev.status : null;
+                    const progress = typeof ev === 'object' && typeof ev.progress === 'number' ? Math.max(0, Math.min(100, ev.progress)) : 0;
                     let stHtml = '';
                     if (st === 'done') stHtml = ` <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${statusColors.done.bg};color:${statusColors.done.color};font-weight:700;">완료</span>`;
                     else if (st === 'final') stHtml = ` <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${statusColors.final.bg};color:${statusColors.final.color};font-weight:700;">최종</span>`;
-                    cell += `<div style="font-size:12px;padding:4px 7px;border-radius:4px;margin-bottom:5px;color:#fff;font-weight:500;background:${colors[ci % 4]};line-height:1.3;">${text}${stHtml}</div>`;
+                    let progHtml = '';
+                    if (progress > 0) {
+                        progHtml = `<div style="margin-top:3px;display:flex;align-items:center;gap:5px;"><div style="flex:1;height:4px;background:rgba(255,255,255,0.3);border-radius:2px;overflow:hidden;"><div style="width:${progress}%;height:100%;background:#fff;"></div></div><span style="font-size:10px;font-weight:700;color:#fff;">${progress}%</span></div>`;
+                    }
+                    cell += `<div style="font-size:12px;padding:4px 7px;border-radius:4px;margin-bottom:5px;color:#fff;font-weight:500;background:${colors[ci % 4]};line-height:1.3;">${text}${stHtml}${progHtml}</div>`;
                 });
 
                 cells.push({ html: cell, dow, empty: false });
@@ -1947,6 +2086,21 @@
                 eventPlannedBox.parentElement.classList.toggle('checked', eventPlannedBox.checked);
             });
         }
+
+        (function initProgressControls() {
+            const range = document.getElementById('eventProgress');
+            const num = document.getElementById('eventProgressNum');
+            if (!range || !num) return;
+            range.addEventListener('input', function() { num.textContent = range.value + '%'; });
+            document.querySelectorAll('.progress-edit-row .prog-preset button').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const v = btn.dataset.p;
+                    range.value = v;
+                    num.textContent = v + '%';
+                });
+            });
+        })();
 
         (function initMemoEditor() {
             const toolbar = document.getElementById('memoToolbar');
