@@ -1673,12 +1673,12 @@
             // 색상 선택 버튼
             let editColor = currentColor;
             const colorRow = document.createElement('div');
-            colorRow.style.cssText = 'display:flex;gap:4px;';
+            colorRow.style.cssText = 'display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;';
             COLOR_NAMES.forEach((name, ci) => {
                 const btn = document.createElement('span');
                 btn.textContent = name;
                 const colorValues = ['#1d4ed8','#15803d','#8b4513','#be185d'];
-                btn.style.cssText = 'font-size:0.8em;padding:5px 12px;border-radius:6px;cursor:pointer;color:#fff;font-weight:600;border:2px solid ' + (ci === editColor ? '#333' : 'transparent') + ';background:' + colorValues[ci] + ';';
+                btn.style.cssText = 'font-size:0.78em;padding:5px 10px;border-radius:6px;cursor:pointer;color:#fff;font-weight:600;white-space:nowrap;flex-shrink:0;border:2px solid ' + (ci === editColor ? '#333' : 'transparent') + ';background:' + colorValues[ci] + ';';
                 btn.onclick = function(e) {
                     e.stopPropagation();
                     editColor = ci;
