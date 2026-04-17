@@ -3,11 +3,11 @@
     "calendar": {
       ".read": true,
       "$child": {
-        ".write": "auth != null"
+        ".write": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')"
       },
-      "shared_memo": {
-        ".read": "auth != null",
-        ".write": "auth != null"
+      "2000_00": {
+        ".read": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')",
+        ".write": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')"
       }
     }
   }

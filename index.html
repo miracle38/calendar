@@ -1177,6 +1177,38 @@
 
         let currentListenerPath = null;
         let memoListenerActive = false;
+
+        // 허용된 leaveType 만 통과 (화이트리스트)
+        function safeLeaveType(v) {
+            return (v === 'vacation' || v === 'am' || v === 'pm') ? v : 'vacation';
+        }
+
+        // 메모 HTML sanitizer - 저장된 HTML을 innerHTML 로 렌더하기 전/붙여넣기 시 사용
+        function sanitizeMemoHtml(html) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = String(html == null ? '' : html);
+            const BAD_TAGS = [
+                'script','style','meta','link','iframe','object','embed',
+                'form','svg','math','base','frame','frameset','portal',
+                'input','button','textarea','select','option',
+                'applet','marquee','blink','audio','video','source','track'
+            ].join(',');
+            tmp.querySelectorAll(BAD_TAGS).forEach(el => el.remove());
+            const URL_ATTRS = ['href','src','action','formaction','xlink:href','ping','srcdoc','data','background','poster','cite'];
+            const BAD_URL_RE = /^[\s\u0000-\u001f]*(javascript|vbscript|data|file):/i;
+            tmp.querySelectorAll('*').forEach(el => {
+                [...el.attributes].forEach(attr => {
+                    const n = attr.name.toLowerCase();
+                    if (n.startsWith('on')) { el.removeAttribute(attr.name); return; }
+                    if (n === 'style' || n === 'id' || n === 'srcdoc') { el.removeAttribute(attr.name); return; }
+                    if (URL_ATTRS.indexOf(n) !== -1) {
+                        const v = (attr.value || '').replace(/[\u0000-\u001f]/g, '');
+                        if (BAD_URL_RE.test(v)) el.removeAttribute(attr.name);
+                    }
+                });
+            });
+            return tmp.innerHTML;
+        }
         let memoData = { text: '', updatedAt: 0, updatedBy: '' };
 
         function memoDbPath() { return 'calendar/2000_00'; }
@@ -1238,7 +1270,7 @@
             // 사용자가 직접 클릭해서 타이핑 중일 때만 덮어쓰기를 건너뛴다.
             if (memoInitialLoad || !focused) {
                 if (memoData.format === 'html') {
-                    ed.innerHTML = memoData.text || '';
+                    ed.innerHTML = sanitizeMemoHtml(memoData.text || '');
                 } else {
                     ed.textContent = memoData.text || '';
                 }
@@ -1455,7 +1487,7 @@
                 let leaveHtml = '';
                 if (leaves.length > 0) {
                     leaveHtml = '<div class="leave-tags">' + leaves.map(ev => {
-                        const lt = ev.leaveType || 'vacation';
+                        const lt = safeLeaveType(ev.leaveType);
                         const evIdx = dayEv.indexOf(ev);
                         const canDrag = currentUser ? 'draggable="true"' : '';
                         return `<span class="leave-tag ${lt}" ${canDrag} data-from="${d}" data-idx="${evIdx}">${LEAVE_LABELS[lt]}: ${escHtml(ev.text)}</span>`;
@@ -1612,7 +1644,7 @@
                 const isLeave = typeof ev === 'object' && ev.leave;
                 const isPlanned = typeof ev === 'object' && ev.planned;
                 const progress = typeof ev === 'object' && typeof ev.progress === 'number' ? Math.max(0, Math.min(100, ev.progress)) : 0;
-                const lt = (typeof ev === 'object' && ev.leaveType) || 'vacation';
+                const lt = safeLeaveType(typeof ev === 'object' ? ev.leaveType : '');
                 const st = (typeof ev === 'object' && ev.status) || null;
                 const leaveLabel = isLeave ? `<span class="li-leave ${lt}">${LEAVE_LABELS[lt]}</span>` : '';
                 const colorDot = isLeave ? '' : `<div class="li-color c${ci % 4}"></div>`;
@@ -1885,7 +1917,7 @@
             if (selectedDay === null) return;
             const ev = events[selectedDay][index];
             const types = ['vacation', 'am', 'pm'];
-            const curr = types.indexOf(ev.leaveType || 'vacation');
+            const curr = types.indexOf(safeLeaveType(ev.leaveType));
             ev.leaveType = types[(curr + 1) % types.length];
             saveEvents();
             renderEventList();
@@ -1960,7 +1992,7 @@
                 let holidayTagHtml = holiday ? `<span style="font-size:11px;color:#e74c3c;font-weight:700;white-space:nowrap;">${holiday}</span>` : '';
                 let leaveTagsHtml = '';
                 leaves.forEach(ev => {
-                    const lt = ev.leaveType || 'vacation';
+                    const lt = safeLeaveType(ev.leaveType);
                     const lc = leaveColors[lt];
                     const label = LEAVE_LABELS[lt];
                     leaveTagsHtml += `<span style="font-size:11px;padding:2px 6px;border-radius:4px;background:${lc.bg};color:${lc.color};font-weight:600;white-space:nowrap;">${label}: ${escHtml(ev.text)}</span>`;
@@ -2027,19 +2059,57 @@
         }
 
         // 불러오기 (JSON 파일)
+        function validateImportedEvents(raw) {
+            if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('루트 형식 불일치');
+            const out = {};
+            Object.keys(raw).forEach(key => {
+                const d = Number(key);
+                if (!Number.isInteger(d) || d < 1 || d > 31 || String(d) !== String(key)) return;
+                const arr = raw[key];
+                if (!Array.isArray(arr)) return;
+                const cleaned = [];
+                arr.forEach(item => {
+                    if (typeof item === 'string') {
+                        cleaned.push({ text: item.slice(0, 500), color: 0 });
+                        return;
+                    }
+                    if (!item || typeof item !== 'object') return;
+                    const ev = {};
+                    ev.text = typeof item.text === 'string' ? item.text.slice(0, 500) : '';
+                    if (!ev.text) return;
+                    const color = Number(item.color);
+                    ev.color = Number.isInteger(color) && color >= 0 && color <= 3 ? color : 0;
+                    if (item.leave === true) {
+                        ev.leave = true;
+                        ev.leaveType = safeLeaveType(item.leaveType);
+                    }
+                    if (item.planned === true) ev.planned = true;
+                    if (item.status === 'done' || item.status === 'final') ev.status = item.status;
+                    const progress = Number(item.progress);
+                    if (Number.isFinite(progress) && progress > 0 && progress <= 100) {
+                        ev.progress = Math.round(progress);
+                    }
+                    cleaned.push(ev);
+                });
+                if (cleaned.length) out[d] = cleaned;
+            });
+            return out;
+        }
+
         function importJSON(e) {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(ev) {
                 try {
-                    const data = JSON.parse(ev.target.result);
+                    const raw = JSON.parse(ev.target.result);
+                    const data = validateImportedEvents(raw);
                     events = data;
                     saveEvents();
                     renderCalendar();
                     alert('일정을 불러왔습니다.');
-                } catch {
-                    alert('올바른 JSON 파일이 아닙니다.');
+                } catch (err) {
+                    alert('올바른 JSON 파일이 아닙니다.\n' + (err && err.message ? err.message : ''));
                 }
             };
             reader.readAsText(file);
@@ -2090,7 +2160,7 @@
             const isLeave = typeof ev === 'object' && ev.leave;
             let text;
             if (isLeave) {
-                const lt = ev.leaveType || 'vacation';
+                const lt = safeLeaveType(ev.leaveType);
                 text = LEAVE_LABELS[lt] + ': ' + ev.text;
             } else {
                 text = typeof ev === 'object' ? ev.text : ev;
@@ -2244,7 +2314,14 @@
                 const val = btn.dataset.val || null;
                 if (cmd === 'createLink') {
                     const url = prompt('링크 URL을 입력하세요:', 'https://');
-                    if (url) exec('createLink', url);
+                    if (url) {
+                        const trimmed = String(url).trim();
+                        if (!/^(https?:\/\/|mailto:|tel:|#|\/)/i.test(trimmed)) {
+                            alert('허용되지 않는 링크 형식입니다. http/https/mailto/tel 만 사용 가능합니다.');
+                        } else {
+                            exec('createLink', trimmed);
+                        }
+                    }
                 } else if (cmd === 'highlight') {
                     exec('hiliteColor', '#fef08a');
                 } else if (cmd === 'formatBlock') {
@@ -2258,7 +2335,7 @@
                         + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
                     const user = (currentUser && (currentUser.displayName || currentUser.email)) || '';
                     const label = user ? stamp + ' · ' + user : stamp;
-                    exec('insertHTML', '<span class="memo-timestamp">[' + label + ']</span>&nbsp;');
+                    exec('insertHTML', '<span class="memo-timestamp">[' + escHtml(label) + ']</span>&nbsp;');
                 } else {
                     exec(cmd, val);
                 }
@@ -2284,29 +2361,13 @@
                 const plain = e.clipboardData && e.clipboardData.getData('text/plain');
                 if (html) {
                     e.preventDefault();
-                    const clean = sanitizeHtml(html);
+                    const clean = sanitizeMemoHtml(html);
                     document.execCommand('insertHTML', false, clean);
                 } else if (plain) {
                     e.preventDefault();
                     document.execCommand('insertText', false, plain);
                 }
             });
-
-            function sanitizeHtml(html) {
-                const tmp = document.createElement('div');
-                tmp.innerHTML = html;
-                tmp.querySelectorAll('script, style, meta, link, iframe, object, embed').forEach(el => el.remove());
-                tmp.querySelectorAll('*').forEach(el => {
-                    [...el.attributes].forEach(attr => {
-                        const n = attr.name.toLowerCase();
-                        if (n.startsWith('on')) el.removeAttribute(attr.name);
-                        if (n === 'href' && /^\s*javascript:/i.test(attr.value)) el.removeAttribute(attr.name);
-                        if (n === 'src' && /^\s*javascript:/i.test(attr.value)) el.removeAttribute(attr.name);
-                        if (n === 'class' || n === 'id') el.removeAttribute(attr.name);
-                    });
-                });
-                return tmp.innerHTML;
-            }
 
             function updateToolbarState() {
                 const cmds = ['bold', 'italic', 'underline', 'strikeThrough'];
