@@ -481,6 +481,15 @@
             border-left: 3px solid #b45309;
             opacity: 0.75;
         }
+        .event-list li.row-highlight {
+            background: #dbeafe !important;
+            box-shadow: inset 0 0 0 2px #2563eb;
+            animation: rowPulse 1.6s ease;
+        }
+        @keyframes rowPulse {
+            0% { box-shadow: inset 0 0 0 0 #2563eb; background: #bfdbfe !important; }
+            100% { box-shadow: inset 0 0 0 2px #2563eb; background: #dbeafe !important; }
+        }
         .event-list li.planned-row:hover { opacity: 1; }
         .event-list li.planned-row .li-color { opacity: 0.55; }
         .event-list li.planned-row .li-planned-badge {
@@ -576,6 +585,19 @@
             white-space: nowrap; flex-shrink: 0;
             text-shadow: 0 1px 2px rgba(0,0,0,0.35);
             line-height: 1;
+        }
+        .day .event-tag .tag-delete {
+            background: rgba(0,0,0,0.2); border: none;
+            color: rgba(255,255,255,0.9);
+            font-size: 1em; font-weight: 800; line-height: 1;
+            padding: 0 5px; margin-left: 4px;
+            border-radius: 3px; cursor: pointer;
+            font-family: inherit; flex-shrink: 0;
+            opacity: 0; transition: opacity 0.15s, background 0.15s;
+        }
+        .day .event-tag:hover .tag-delete { opacity: 1; }
+        .day .event-tag .tag-delete:hover {
+            background: rgba(220,38,38,0.9); color: #fff;
         }
 
         .event-list li .li-progress-wrap {
@@ -1460,7 +1482,8 @@
                     const plannedTitle = isPlanned ? ' (예정)' : '';
                     const progressTitle = progress > 0 ? ' · ' + progress + '%' : '';
                     const progressHtml = progress > 0 ? `<div class="tag-progress"><div class="tag-progress-bar"><div class="tag-progress-fill" style="width:${progress}%"></div></div><span class="tag-progress-pct">${progress}%</span></div>` : '';
-                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${progressHtml}</div>`;
+                    const tagDelete = currentUser ? `<button class="tag-delete" title="삭제" onclick="deleteEventFromCal(event, ${d}, ${evIdx})">×</button>` : '';
+                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${tagDelete}${progressHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
@@ -1504,12 +1527,27 @@
 
         function handleDayClick(e, day) {
             if (e && e.altKey) return;
+            if (e && e.target && e.target.closest('.tag-delete')) return;
             const tag = e && e.target && e.target.closest('.event-tag');
             if (tag && !tag.classList.contains('leave-tag')) {
                 const idx = parseInt(tag.dataset.idx, 10);
                 if (!isNaN(idx)) { openModal(day, idx); return; }
             }
             openModal(day);
+        }
+
+        function deleteEventFromCal(e, day, idx) {
+            if (e) { e.stopPropagation(); e.preventDefault(); }
+            if (!currentUser) return;
+            if (!events[day] || !events[day][idx]) return;
+            const ev = events[day][idx];
+            const label = typeof ev === 'object' ? (ev.text || '') : ev;
+            if (!confirm('삭제하시겠습니까?\n\n' + label.substring(0, 80))) return;
+            events[day].splice(idx, 1);
+            if (events[day].length === 0) delete events[day];
+            saveEvents();
+            renderCalendar();
+            if (selectedDay !== null) renderEventList();
         }
 
         function openModal(day, editIdx) {
@@ -1535,24 +1573,17 @@
             document.querySelector('.leave-options').style.display = isAuth ? 'flex' : 'none';
             document.getElementById('eventForm').style.display = isAuth ? 'flex' : 'none';
             renderColorPicker();
-            renderEventList();
-            if (editIdx != null && isAuth && events[day] && events[day][editIdx]) {
-                const ev = events[day][editIdx];
-                if (!(typeof ev === 'object' && ev.leave)) {
-                    setTimeout(function() {
-                        editEvent(editIdx);
-                        setTimeout(function() {
-                            const list = document.getElementById('scheduleList');
-                            if (!list) return;
-                            const target = list.querySelector('.edit-input');
-                            const li = target && target.closest('li');
-                            if (li && li.scrollIntoView) {
-                                li.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }
-                        }, 50);
-                    }, 80);
-                    return;
-                }
+            renderEventList(editIdx);
+            if (editIdx != null && events[day] && events[day][editIdx]) {
+                setTimeout(function() {
+                    const list = document.getElementById('scheduleList');
+                    if (!list) return;
+                    const li = list.querySelector('li[data-idx="' + editIdx + '"]');
+                    if (li && li.scrollIntoView) {
+                        li.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 80);
+                return;
             }
             if (isAuth) setTimeout(() => document.getElementById('eventInput').focus(), 100);
         }
@@ -1572,7 +1603,7 @@
             selectedDay = null;
         }
 
-        function renderEventList() {
+        function renderEventList(highlightIdx) {
             const scheduleList = document.getElementById('scheduleList');
             const leaveList = document.getElementById('leaveList');
             const dayEv = events[selectedDay] || [];
@@ -1600,7 +1631,10 @@
                 const textClass = canEditText ? 'editable' : '';
                 const leaveTypeClick = (isAuth && isLeave) ? `onclick="cycleLeaveType(${i})"` : '';
                 const nameClass = isLeave ? 'leave-name' : textClass;
-                const rowCls = isPlanned ? ' class="planned-row"' : '';
+                const classes = [];
+                if (isPlanned) classes.push('planned-row');
+                if (i === highlightIdx) classes.push('row-highlight');
+                const rowCls = classes.length ? ' class="' + classes.join(' ') + '"' : '';
                 let displayText;
                 if (!isLeave && text.indexOf('\n') !== -1) {
                     const lines = text.split('\n');
@@ -1610,7 +1644,7 @@
                 } else {
                     displayText = escHtml(text);
                 }
-                return `<li${rowCls}>${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${displayText}</span>${progressHtml}${plannedBadge}${stLabel}${statusBtns}${deleteBtn}</li>`;
+                return `<li${rowCls} data-idx="${i}">${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${displayText}</span>${progressHtml}${plannedBadge}${stLabel}${statusBtns}${deleteBtn}</li>`;
             }
 
             const scheduleItems = [];
