@@ -1727,6 +1727,12 @@
             const colorDot = li.querySelector('.li-color');
             const span = li.querySelector('span.editable');
             if (!span) return;
+            // 편집 시 나머지 요소들은 숨겨 편집 영역이 충분한 너비를 확보하도록
+            const hiddenEls = [];
+            li.querySelectorAll('.li-progress-wrap, .li-planned-badge, .status-label, .status-btns, .event-delete').forEach(el => {
+                hiddenEls.push([el, el.style.display]);
+                el.style.display = 'none';
+            });
 
             // 편집 영역 생성
             const editWrap = document.createElement('div');
@@ -1817,6 +1823,14 @@
 
             span.replaceWith(editWrap);
             textarea.focus();
+            // 최하단 일정을 편집할 때 확장된 영역이 스크롤 영역 밖으로 밀려
+            // UI가 잘려 보이는 문제 방지 — li 를 리스트 안에서 보이는 위치로 스크롤
+            requestAnimationFrame(function() {
+                const li = editWrap.closest('li');
+                if (li && li.scrollIntoView) {
+                    li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
 
             function save() {
                 const newText = textarea.value.trim();
