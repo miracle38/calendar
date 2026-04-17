@@ -1766,23 +1766,32 @@
                 renderCalendar();
             }
 
-            textarea.addEventListener('blur', function() {
+            let savedOnce = false;
+            function saveOnce() {
+                if (savedOnce) return;
+                savedOnce = true;
+                document.removeEventListener('mousedown', outsideClick, true);
+                save();
+            }
+            function outsideClick(e) {
+                if (!editWrap.contains(e.target)) saveOnce();
+            }
+            editWrap.addEventListener('focusout', function() {
                 setTimeout(function() {
-                    const active = document.activeElement;
-                    if (editWrap.contains(active)) return;
-                    save();
+                    if (!editWrap.contains(document.activeElement)) saveOnce();
                 }, 150);
             });
+            setTimeout(function() {
+                document.addEventListener('mousedown', outsideClick, true);
+            }, 50);
+
             textarea.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textarea.blur(); }
-                if (e.key === 'Escape') { renderEventList(); }
-            });
-            progRange.addEventListener('change', function() {
-                setTimeout(function() {
-                    const active = document.activeElement;
-                    if (editWrap.contains(active)) return;
-                    save();
-                }, 150);
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textarea.blur(); saveOnce(); }
+                if (e.key === 'Escape') {
+                    document.removeEventListener('mousedown', outsideClick, true);
+                    savedOnce = true;
+                    renderEventList();
+                }
             });
         }
 
