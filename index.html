@@ -983,7 +983,7 @@
         let memoListenerActive = false;
         let memoData = { text: '', updatedAt: 0, updatedBy: '' };
 
-        function memoDbPath() { return 'shared_memo'; }
+        function memoDbPath() { return 'calendar/shared_memo'; }
 
         function parseMemoValue(val) {
             if (!val) return { text: '', updatedAt: 0, updatedBy: '' };
@@ -1065,23 +1065,20 @@
                 updatedBy: currentUser.displayName || currentUser.email || ''
             };
             const serialized = JSON.stringify(payload);
-            const ref = db.ref(memoDbPath());
-            ref.set(serialized).then(function() {
-                return ref.once('value');
-            }).then(function(snap) {
-                const remote = parseMemoValue(snap.val());
-                if (remote.updatedAt !== payload.updatedAt) {
-                    throw new Error('서버에 저장된 값이 확인되지 않습니다. Firebase DB 규칙을 확인하세요.');
-                }
+            db.ref(memoDbPath()).set(serialized).then(function() {
                 memoData = payload;
                 renderMemo();
-                btn.textContent = '저장됨 ✓ (서버 확인 완료)';
+                btn.textContent = '저장됨 ✓';
                 setTimeout(function() { btn.disabled = false; btn.textContent = '저장'; }, 1500);
             }).catch(function(err) {
                 console.error('Memo 저장 실패:', err);
-                const msg = err && err.code === 'PERMISSION_DENIED'
-                    ? 'Firebase 권한이 거부되었습니다. DB 규칙에서 shared_memo 경로 쓰기 권한을 확인하세요.\n\n원본: ' + (err.message || err)
-                    : '저장 실패: ' + (err && err.message ? err.message : err);
+                const code = err && err.code;
+                let msg;
+                if (code === 'PERMISSION_DENIED') {
+                    msg = 'Firebase 권한 거부\n\nFirebase Console → Realtime Database → 규칙 탭에서\ncalendar/shared_memo 경로에 쓰기 권한이 필요합니다.\n\n' + (err.message || '');
+                } else {
+                    msg = '저장 실패: ' + (err && err.message ? err.message : err) + '\n(F12 콘솔에서 상세 확인)';
+                }
                 alert(msg);
                 btn.disabled = false;
                 btn.textContent = '저장';
