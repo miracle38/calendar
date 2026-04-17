@@ -555,23 +555,27 @@
         .tag-status.final { background: #f43f5e; color: #fff; }
 
         /* 진행률 게이지 */
-        .day .event-tag { position: relative; padding-bottom: 7px; }
+        .day .event-tag { position: relative; padding-bottom: 10px; }
         .day .event-tag .tag-progress {
-            position: absolute; left: 2px; right: 2px; bottom: 1px;
-            height: 3px; border-radius: 2px;
+            position: absolute; left: 4px; right: 4px; bottom: 2px;
+            height: 8px;
+            display: flex; align-items: center; gap: 4px;
+            pointer-events: none;
+        }
+        .day .event-tag .tag-progress-bar {
+            flex: 1; height: 3px;
             background: rgba(255,255,255,0.25);
-            overflow: hidden;
+            border-radius: 2px; overflow: hidden;
         }
         .day .event-tag .tag-progress-fill {
             height: 100%; background: rgba(255,255,255,0.95);
             border-radius: 2px; transition: width 0.2s;
         }
         .day .event-tag .tag-progress-pct {
-            font-size: 0.75em; font-weight: 800;
-            padding: 1px 5px; margin-left: 4px;
-            background: rgba(255,255,255,0.88); color: #1f2937;
-            border-radius: 3px; white-space: nowrap;
-            flex-shrink: 0;
+            font-size: 0.72em; font-weight: 800; color: #fff;
+            white-space: nowrap; flex-shrink: 0;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+            line-height: 1;
         }
 
         .event-list li .li-progress-wrap {
@@ -1455,9 +1459,8 @@
                     const plannedCls = isPlanned ? ' planned' : '';
                     const plannedTitle = isPlanned ? ' (예정)' : '';
                     const progressTitle = progress > 0 ? ' · ' + progress + '%' : '';
-                    const progressPctHtml = progress > 0 ? `<span class="tag-progress-pct">${progress}%</span>` : '';
-                    const progressHtml = progress > 0 ? `<div class="tag-progress"><div class="tag-progress-fill" style="width:${progress}%"></div></div>` : '';
-                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${progressPctHtml}${stHtml}${progressHtml}</div>`;
+                    const progressHtml = progress > 0 ? `<div class="tag-progress"><div class="tag-progress-bar"><div class="tag-progress-fill" style="width:${progress}%"></div></div><span class="tag-progress-pct">${progress}%</span></div>` : '';
+                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${progressHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
