@@ -2139,14 +2139,15 @@
                 const fromDay = data.from;
                 const idx = data.idx;
                 if (!events[fromDay] || !events[fromDay][idx]) return;
-                if (fromDay === toDay) return;
+
+                const isCopy = copyModifier || e.altKey || e.ctrlKey;
+                if (fromDay === toDay && !isCopy) return;
 
                 const evCopy = JSON.parse(JSON.stringify(events[fromDay][idx]));
                 if (!events[toDay]) events[toDay] = [];
                 events[toDay].push(evCopy);
 
-                // Option(Mac) 또는 Ctrl(Windows) 누르면 복사, 아니면 이동
-                if (!copyModifier && !e.altKey && !e.ctrlKey) {
+                if (!isCopy) {
                     events[fromDay].splice(idx, 1);
                     if (events[fromDay].length === 0) delete events[fromDay];
                 }
