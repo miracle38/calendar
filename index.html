@@ -1336,7 +1336,7 @@
                 if (holiday) cls += ' holiday';
 
                 const dayEv = events[d] || [];
-                const isAuthView = !!currentUser;
+                const isAuthView = !!currentUser || localStorage.getItem('loggedIn') === 'true';
                 const leaves = dayEv.filter(ev => typeof ev === 'object' && ev.leave);
                 const normal = dayEv.filter(ev => {
                     if (typeof ev === 'object' && ev.leave) return false;
