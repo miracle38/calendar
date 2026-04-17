@@ -156,9 +156,12 @@
         .memo-editor mark { background: #fef08a; padding: 0 2px; border-radius: 2px; }
         .memo-footer {
             display: flex; justify-content: space-between; align-items: center;
-            gap: 10px; padding: 12px 22px 18px;
+            gap: 10px; padding: 12px 22px 18px; flex-wrap: wrap;
         }
         .memo-meta { font-size: 0.82em; color: #999; }
+        .memo-status { font-size: 0.82em; color: #b45309; flex: 1; text-align: center; }
+        .memo-status.error { color: #dc2626; font-weight: 600; }
+        .memo-status.success { color: #059669; font-weight: 600; }
         .memo-actions { display: flex; gap: 8px; }
         .memo-actions button {
             padding: 9px 20px; border: none; border-radius: 8px;
@@ -761,6 +764,7 @@
             </div>
             <div class="memo-footer">
                 <span class="memo-meta" id="memoMeta"></span>
+                <span class="memo-status" id="memoStatus"></span>
                 <div class="memo-actions">
                     <button class="btn-cancel" onclick="closeMemo()">닫기</button>
                     <button class="btn-save" id="memoSaveBtn" onclick="saveMemo()">저장</button>
@@ -1133,36 +1137,57 @@
             document.getElementById('memoOverlay').classList.remove('active');
         }
 
+        function setMemoStatus(msg, type) {
+            const el = document.getElementById('memoStatus');
+            if (!el) return;
+            el.textContent = msg || '';
+            el.className = 'memo-status' + (type ? ' ' + type : '');
+        }
+
         function saveMemo() {
-            if (!currentUser) { alert('로그인이 필요합니다.'); return; }
-            if (!db) { alert('서버 연결이 되어있지 않습니다.'); return; }
+            setMemoStatus('', '');
+            if (!currentUser) { setMemoStatus('로그인이 필요합니다.', 'error'); return; }
+            if (!db) { setMemoStatus('서버 연결이 되어있지 않습니다.', 'error'); return; }
             const ed = document.getElementById('memoEditor');
             const btn = document.getElementById('memoSaveBtn');
-            const text = ed.innerHTML;
+            if (!ed || !btn) { setMemoStatus('에디터 요소를 찾을 수 없음', 'error'); return; }
+            let text = '';
+            try { text = ed.innerHTML; } catch (e) { setMemoStatus('에디터 내용 읽기 실패: ' + e.message, 'error'); return; }
             btn.disabled = true;
             btn.textContent = '저장 중...';
+            setMemoStatus('저장 중...', '');
             const payload = {
                 text: text,
                 format: 'html',
                 updatedAt: Date.now(),
                 updatedBy: currentUser.displayName || currentUser.email || ''
             };
-            const serialized = JSON.stringify(payload);
+            let serialized;
+            try { serialized = JSON.stringify(payload); }
+            catch (e) {
+                setMemoStatus('직렬화 실패: ' + e.message, 'error');
+                btn.disabled = false; btn.textContent = '저장'; return;
+            }
+            console.log('[memo] saving', serialized.length, 'chars to', memoDbPath());
             db.ref(memoDbPath()).set(serialized).then(function() {
                 memoData = payload;
                 renderMemo();
                 btn.textContent = '저장됨 ✓';
-                setTimeout(function() { btn.disabled = false; btn.textContent = '저장'; }, 1500);
+                setMemoStatus('저장되었습니다 ✓', 'success');
+                setTimeout(function() {
+                    btn.disabled = false; btn.textContent = '저장';
+                    setMemoStatus('', '');
+                }, 2000);
             }).catch(function(err) {
-                console.error('Memo 저장 실패:', err);
+                console.error('[memo] 저장 실패:', err);
                 const code = err && err.code;
                 let msg;
                 if (code === 'PERMISSION_DENIED') {
-                    msg = 'Firebase 권한 거부\n\nFirebase Console → Realtime Database → 규칙 탭에서\ncalendar/shared_memo 경로에 쓰기 권한이 필요합니다.\n\n' + (err.message || '');
+                    msg = '권한 거부 · Firebase 규칙에서 calendar/shared_memo 쓰기 권한을 확인하세요.';
                 } else {
-                    msg = '저장 실패: ' + (err && err.message ? err.message : err) + '\n(F12 콘솔에서 상세 확인)';
+                    msg = '저장 실패: ' + (err && err.message ? err.message.substring(0, 80) : err);
                 }
-                alert(msg);
+                setMemoStatus(msg, 'error');
                 btn.disabled = false;
                 btn.textContent = '저장';
             });
