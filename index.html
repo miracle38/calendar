@@ -373,7 +373,6 @@
         .color-dot.cd3 { background: var(--c4); }
 
         .event-form .btn-add {
-            align-self: flex-end;
             padding: 10px 28px;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: #fff; border: none; border-radius: 10px;
@@ -382,6 +381,46 @@
         }
 
         .event-form .btn-add:hover { opacity: 0.9; }
+
+        .event-form-row {
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 10px; flex-wrap: wrap;
+        }
+
+        .planned-check {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 10px; border-radius: 8px;
+            background: #fef3c7; color: #92400e;
+            font-size: 0.85em; font-weight: 600;
+            cursor: pointer; user-select: none;
+            border: 1.5px solid transparent; transition: all 0.15s;
+        }
+        .planned-check:hover { background: #fde68a; }
+        .planned-check input { cursor: pointer; accent-color: #b45309; }
+        .planned-check.checked { background: #fde68a; border-color: #b45309; }
+
+        .day .event-tag.planned {
+            background: repeating-linear-gradient(45deg,
+                rgba(255,255,255,0.12) 0 6px, transparent 6px 12px),
+                var(--tag-bg, #6b7280) !important;
+            border: 1.5px dashed rgba(255,255,255,0.6);
+            padding: 3px 7px;
+        }
+        .day .event-tag.planned.c0 { --tag-bg: #1d4ed8; }
+        .day .event-tag.planned.c1 { --tag-bg: #15803d; }
+        .day .event-tag.planned.c2 { --tag-bg: #8b4513; }
+        .day .event-tag.planned.c3 { --tag-bg: #be185d; }
+        .day .event-tag.planned .tag-text::before { content: "🔒 "; }
+
+        .event-list li.planned-row {
+            background: #fef3c7 !important;
+            border-left: 3px solid #b45309;
+        }
+        .event-list li.planned-row .li-planned-badge {
+            font-size: 0.72em; padding: 2px 6px; border-radius: 4px;
+            background: #b45309; color: #fff; font-weight: 700;
+            flex: 0 0 auto; white-space: nowrap;
+        }
 
         .event-list { list-style: none; max-height: 280px; overflow-y: auto; }
 
@@ -693,7 +732,13 @@
                 <div class="color-picker" id="colorPicker" style="margin-top:8px;"></div>
                 <div class="event-form" id="eventForm" style="margin-top:12px;">
                     <textarea id="eventInput" placeholder="일정을 입력하세요 (Shift+Enter로 줄바꿈)" rows="1"></textarea>
-                    <button class="btn-add" onclick="addEvent()">추가</button>
+                    <div class="event-form-row">
+                        <label class="planned-check" title="로그인 사용자만 볼 수 있는 비공개 예정 항목">
+                            <input type="checkbox" id="eventPlanned">
+                            <span>🔒 예정 (로그인 전용)</span>
+                        </label>
+                        <button class="btn-add" onclick="addEvent()">추가</button>
+                    </div>
                 </div>
                 <ul class="event-list" id="scheduleList"></ul>
                 <hr style="border:none; border-top:1px solid #e0e0e0; margin:20px 0;">
@@ -1094,9 +1139,13 @@
                 if (holiday) cls += ' holiday';
 
                 const dayEv = events[d] || [];
+                const isAuthView = !!currentUser;
                 const leaves = dayEv.filter(ev => typeof ev === 'object' && ev.leave);
-                const normal = dayEv.filter(ev => !(typeof ev === 'object' && ev.leave))
-                    .sort((a, b) => ((typeof a === 'object' ? a.color : 0) || 0) - ((typeof b === 'object' ? b.color : 0) || 0));
+                const normal = dayEv.filter(ev => {
+                    if (typeof ev === 'object' && ev.leave) return false;
+                    if (!isAuthView && typeof ev === 'object' && ev.planned) return false;
+                    return true;
+                }).sort((a, b) => ((typeof a === 'object' ? a.color : 0) || 0) - ((typeof b === 'object' ? b.color : 0) || 0));
 
                 let holidayHtml = holiday ? `<span class="holiday-name">${holiday}</span>` : '';
                 let leaveHtml = '';
@@ -1115,12 +1164,15 @@
                     const ci = typeof ev === 'object' ? (ev.color || 0) : 0;
                     const text = typeof ev === 'object' ? ev.text : ev;
                     const st = typeof ev === 'object' ? ev.status : null;
+                    const isPlanned = typeof ev === 'object' && ev.planned;
                     let stHtml = '';
                     if (st === 'done') stHtml = '<span class="tag-status done">완료</span>';
                     else if (st === 'final') stHtml = '<span class="tag-status final">최종</span>';
                     const evIdx = dayEv.indexOf(ev);
                     const canDrag = currentUser ? 'draggable="true"' : '';
-                    evHtml += `<div class="event-tag c${ci % 4}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}"><span class="tag-text">${escHtml(text)}</span>${stHtml}</div>`;
+                    const plannedCls = isPlanned ? ' planned' : '';
+                    const plannedTitle = isPlanned ? ' (예정)' : '';
+                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
@@ -1171,6 +1223,8 @@
             document.getElementById('modalTitle').textContent = `${currentMonth}월 ${day}일 (${dowNames[dow]})`;
             document.getElementById('modalOverlay').classList.add('active');
             document.getElementById('eventInput').value = '';
+            const plannedBox = document.getElementById('eventPlanned');
+            if (plannedBox) { plannedBox.checked = false; plannedBox.parentElement.classList.remove('checked'); }
             document.querySelectorAll('.leave-btn').forEach(btn => { btn.classList.remove('on'); btn.classList.add('off'); });
             document.getElementById('leaveForm').style.display = 'none';
             document.getElementById('memberSelect').value = '';
@@ -1208,11 +1262,13 @@
                 const ci = typeof ev === 'object' ? (ev.color || 0) : 0;
                 const text = typeof ev === 'object' ? ev.text : ev;
                 const isLeave = typeof ev === 'object' && ev.leave;
+                const isPlanned = typeof ev === 'object' && ev.planned;
                 const lt = (typeof ev === 'object' && ev.leaveType) || 'vacation';
                 const st = (typeof ev === 'object' && ev.status) || null;
                 const leaveLabel = isLeave ? `<span class="li-leave ${lt}">${LEAVE_LABELS[lt]}</span>` : '';
                 const colorDot = isLeave ? '' : `<div class="li-color c${ci % 4}"></div>`;
                 const stLabel = st ? `<span class="status-label ${st}">${st === 'done' ? '완료' : '최종'}</span>` : '';
+                const plannedBadge = isPlanned ? '<span class="li-planned-badge">🔒 예정</span>' : '';
                 const doneActive = st === 'done' ? ' active-done' : '';
                 const finalActive = st === 'final' ? ' active-final' : '';
                 const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
@@ -1222,6 +1278,7 @@
                 const textClass = canEditText ? 'editable' : '';
                 const leaveTypeClick = (isAuth && isLeave) ? `onclick="cycleLeaveType(${i})"` : '';
                 const nameClass = isLeave ? 'leave-name' : textClass;
+                const rowCls = isPlanned ? ' class="planned-row"' : '';
                 let displayText;
                 if (!isLeave && text.indexOf('\n') !== -1) {
                     const lines = text.split('\n');
@@ -1231,13 +1288,15 @@
                 } else {
                     displayText = escHtml(text);
                 }
-                return `<li>${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${displayText}</span>${stLabel}${statusBtns}${deleteBtn}</li>`;
+                return `<li${rowCls}>${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${displayText}</span>${plannedBadge}${stLabel}${statusBtns}${deleteBtn}</li>`;
             }
 
             const scheduleItems = [];
             const leaves = [];
             dayEv.forEach((ev, i) => {
                 const isLeave = typeof ev === 'object' && ev.leave;
+                const isPlanned = typeof ev === 'object' && ev.planned;
+                if (!isAuth && isPlanned) return;
                 if (isLeave) leaves.push(renderItem(ev, i));
                 else scheduleItems.push({ html: renderItem(ev, i), color: (typeof ev === 'object' ? (ev.color || 0) : 0) });
             });
@@ -1272,7 +1331,11 @@
             const text = input.value.trim();
             if (!text || selectedDay === null) return;
             if (!events[selectedDay]) events[selectedDay] = [];
-            events[selectedDay].push({ text, color: selectedColor });
+            const plannedBox = document.getElementById('eventPlanned');
+            const planned = !!(plannedBox && plannedBox.checked);
+            const newEv = { text, color: selectedColor };
+            if (planned) newEv.planned = true;
+            events[selectedDay].push(newEv);
             saveEvents();
             input.value = '';
             input.focus();
@@ -1335,6 +1398,25 @@
             textarea.value = text;
             editWrap.appendChild(textarea);
 
+            // 예정 토글
+            const currentPlanned = typeof ev === 'object' && !!ev.planned;
+            let editPlanned = currentPlanned;
+            const plannedLabel = document.createElement('label');
+            plannedLabel.className = 'planned-check' + (editPlanned ? ' checked' : '');
+            plannedLabel.style.cssText = 'align-self:flex-start;';
+            const plannedInput = document.createElement('input');
+            plannedInput.type = 'checkbox';
+            plannedInput.checked = editPlanned;
+            plannedInput.addEventListener('change', function() {
+                editPlanned = plannedInput.checked;
+                plannedLabel.classList.toggle('checked', editPlanned);
+            });
+            const plannedSpan = document.createElement('span');
+            plannedSpan.textContent = '🔒 예정 (로그인 전용)';
+            plannedLabel.appendChild(plannedInput);
+            plannedLabel.appendChild(plannedSpan);
+            editWrap.appendChild(plannedLabel);
+
             span.replaceWith(editWrap);
             textarea.focus();
 
@@ -1343,8 +1425,11 @@
                 if (newText && typeof ev === 'object') {
                     ev.text = newText;
                     ev.color = editColor;
+                    if (editPlanned) ev.planned = true; else delete ev.planned;
                 } else if (newText) {
-                    events[selectedDay][index] = { text: newText, color: editColor };
+                    const next = { text: newText, color: editColor };
+                    if (editPlanned) next.planned = true;
+                    events[selectedDay][index] = next;
                 }
                 saveEvents();
                 renderEventList();
@@ -1428,7 +1513,7 @@
                 const dow = (startOffset + d - 1) % 7;
                 const dayEv = events[d] || [];
                 const leaves = dayEv.filter(ev => typeof ev === 'object' && ev.leave);
-                const normal = dayEv.filter(ev => !(typeof ev === 'object' && ev.leave))
+                const normal = dayEv.filter(ev => !(typeof ev === 'object' && ev.leave) && !(typeof ev === 'object' && ev.planned))
                     .sort((a, b) => ((typeof a === 'object' ? a.color : 0) || 0) - ((typeof b === 'object' ? b.color : 0) || 0));
 
                 const holiday = getHoliday(currentYear, currentMonth, d);
@@ -1646,6 +1731,13 @@
         document.getElementById('dragHint').textContent = isMac
             ? '드래그: 이동 · ⌥+드래그: 복사 · ⌥+클릭: 텍스트 복사'
             : '드래그: 이동 · Ctrl+드래그: 복사 · Alt+클릭: 텍스트 복사';
+
+        const eventPlannedBox = document.getElementById('eventPlanned');
+        if (eventPlannedBox) {
+            eventPlannedBox.addEventListener('change', function() {
+                eventPlannedBox.parentElement.classList.toggle('checked', eventPlannedBox.checked);
+            });
+        }
 
         updateHeader();
         renderCalendar();
