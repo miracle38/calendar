@@ -1825,7 +1825,9 @@
             }, 50);
 
             textarea.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textarea.blur(); saveOnce(); }
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault(); textarea.blur(); saveOnce();
+                }
                 if (e.key === 'Escape') {
                     document.removeEventListener('mousedown', outsideClick, true);
                     savedOnce = true;
