@@ -1374,13 +1374,13 @@
         const calDays = document.getElementById('calendarDays');
         const dragHint = document.getElementById('dragHint');
 
-        // Mac Chrome에서 drop 이벤트의 metaKey가 누락되는 문제 우회
+        // Mac: Option(⌥), Windows: Ctrl로 복사 드래그
         let copyModifier = false;
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Control' || e.key === 'Meta') copyModifier = true;
+            if (e.key === 'Alt' || e.key === 'Control') copyModifier = true;
         });
         document.addEventListener('keyup', function(e) {
-            if (e.key === 'Control' || e.key === 'Meta') copyModifier = false;
+            if (e.key === 'Alt' || e.key === 'Control') copyModifier = false;
         });
         window.addEventListener('blur', function() { copyModifier = false; });
 
@@ -1435,8 +1435,8 @@
                 if (!events[toDay]) events[toDay] = [];
                 events[toDay].push(evCopy);
 
-                // Ctrl(Windows) 또는 Cmd(Mac) 누르면 복사, 아니면 이동
-                if (!copyModifier) {
+                // Option(Mac) 또는 Ctrl(Windows) 누르면 복사, 아니면 이동
+                if (!copyModifier && !e.altKey && !e.ctrlKey) {
                     events[fromDay].splice(idx, 1);
                     if (events[fromDay].length === 0) delete events[fromDay];
                 }
@@ -1448,7 +1448,7 @@
 
         const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform) || /Mac/.test(navigator.userAgent);
         document.getElementById('dragHint').textContent = isMac
-            ? '드래그: 이동 · ⌘+드래그: 복사'
+            ? '드래그: 이동 · ⌥(Option)+드래그: 복사'
             : '드래그: 이동 · Ctrl+드래그: 복사';
 
         updateHeader();
