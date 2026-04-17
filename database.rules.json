@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "calendar": {
+      "$month": {
+        ".read": true,
+        ".write": "auth != null"
+      }
+    },
+    "shared_memo": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}

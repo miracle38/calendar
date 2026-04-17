@@ -983,7 +983,7 @@
         let memoListenerActive = false;
         let memoData = { text: '', updatedAt: 0, updatedBy: '' };
 
-        function memoDbPath() { return 'calendar/shared_memo'; }
+        function memoDbPath() { return 'shared_memo'; }
 
         function parseMemoValue(val) {
             if (!val) return { text: '', updatedAt: 0, updatedBy: '' };
@@ -1064,14 +1064,25 @@
                 updatedAt: Date.now(),
                 updatedBy: currentUser.displayName || currentUser.email || ''
             };
-            db.ref(memoDbPath()).set(JSON.stringify(payload)).then(function() {
+            const serialized = JSON.stringify(payload);
+            const ref = db.ref(memoDbPath());
+            ref.set(serialized).then(function() {
+                return ref.once('value');
+            }).then(function(snap) {
+                const remote = parseMemoValue(snap.val());
+                if (remote.updatedAt !== payload.updatedAt) {
+                    throw new Error('서버에 저장된 값이 확인되지 않습니다. Firebase DB 규칙을 확인하세요.');
+                }
                 memoData = payload;
                 renderMemo();
-                btn.textContent = '저장됨 ✓';
-                setTimeout(function() { btn.disabled = false; btn.textContent = '저장'; }, 1200);
+                btn.textContent = '저장됨 ✓ (서버 확인 완료)';
+                setTimeout(function() { btn.disabled = false; btn.textContent = '저장'; }, 1500);
             }).catch(function(err) {
                 console.error('Memo 저장 실패:', err);
-                alert('저장 실패: ' + (err && err.message ? err.message : err));
+                const msg = err && err.code === 'PERMISSION_DENIED'
+                    ? 'Firebase 권한이 거부되었습니다. DB 규칙에서 shared_memo 경로 쓰기 권한을 확인하세요.\n\n원본: ' + (err.message || err)
+                    : '저장 실패: ' + (err && err.message ? err.message : err);
+                alert(msg);
                 btn.disabled = false;
                 btn.textContent = '저장';
             });
