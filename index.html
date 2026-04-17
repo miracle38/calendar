@@ -481,15 +481,15 @@
             border-left: 3px solid #b45309;
             opacity: 0.75;
         }
-        body.d-delete-mode .event-list li:hover {
-            background: #fee2e2 !important;
-            box-shadow: inset 0 0 0 2px #dc2626;
+        body.d-delete-mode .day .event-tag,
+        body.d-delete-mode .day .leave-tag {
             cursor: not-allowed;
         }
-        body.d-delete-mode .event-list li:hover::after {
-            content: " 🗑 삭제";
-            color: #dc2626; font-weight: 700; font-size: 0.85em;
-            margin-left: auto; padding-left: 8px;
+        body.d-delete-mode .day .event-tag:hover,
+        body.d-delete-mode .day .leave-tag:hover {
+            outline: 2px solid #dc2626;
+            outline-offset: 1px;
+            background: rgba(220,38,38,0.15) !important;
         }
         .event-list li.row-highlight {
             background: #dbeafe !important;
@@ -905,7 +905,6 @@
                 </div>
             </div>
             <div class="modal-body">
-                <div style="font-size:0.78em; color:#6b7280; margin-bottom:8px; text-align:right;">삭제: <kbd style="background:#f3f4f6;border:1px solid #d1d5db;border-radius:4px;padding:1px 6px;font-family:inherit;font-weight:700;color:#374151;">D</kbd> 키를 누른 채 항목 클릭</div>
                 <div class="section-title">📋 제품</div>
                 <div class="color-picker" id="colorPicker" style="margin-top:8px;"></div>
                 <div class="event-form" id="eventForm" style="margin-top:12px;">
@@ -1524,6 +1523,22 @@
 
         function handleDayClick(e, day) {
             if (e && e.altKey) return;
+            const anyTag = e && e.target && e.target.closest('.event-tag, .leave-tag');
+            if (dKeyDown && currentUser && anyTag) {
+                e.preventDefault();
+                e.stopPropagation();
+                const idx = parseInt(anyTag.dataset.idx, 10);
+                if (isNaN(idx) || !events[day] || !events[day][idx]) return;
+                const ev = events[day][idx];
+                const label = typeof ev === 'object' ? (ev.text || '') : ev;
+                if (!confirm('삭제하시겠습니까?\n\n' + String(label).substring(0, 80))) return;
+                events[day].splice(idx, 1);
+                if (events[day].length === 0) delete events[day];
+                saveEvents();
+                renderCalendar();
+                if (selectedDay !== null) renderEventList();
+                return;
+            }
             const tag = e && e.target && e.target.closest('.event-tag');
             if (tag && !tag.classList.contains('leave-tag')) {
                 const idx = parseInt(tag.dataset.idx, 10);
@@ -1607,7 +1622,7 @@
                 const doneActive = st === 'done' ? ' active-done' : '';
                 const finalActive = st === 'final' ? ' active-final' : '';
                 const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
-                const deleteBtn = '';
+                const deleteBtn = isAuth ? `<button class="event-delete" onclick="deleteEvent(${i})">&#10005;</button>` : '';
                 const canEditText = isAuth && !isLeave;
                 const editClick = canEditText ? `onclick="editEvent(${i})"` : '';
                 const textClass = canEditText ? 'editable' : '';
@@ -2178,30 +2193,6 @@
             document.body.classList.remove('d-delete-mode');
         });
 
-        function attachListDeleteHandler(listEl) {
-            if (!listEl || listEl.dataset.delWired) return;
-            listEl.dataset.delWired = '1';
-            listEl.addEventListener('click', function(e) {
-                if (!dKeyDown || !currentUser) return;
-                const li = e.target && e.target.closest('li[data-idx]');
-                if (!li) return;
-                e.preventDefault();
-                e.stopPropagation();
-                const idx = parseInt(li.dataset.idx, 10);
-                if (isNaN(idx)) return;
-                if (!events[selectedDay] || !events[selectedDay][idx]) return;
-                const ev = events[selectedDay][idx];
-                const label = typeof ev === 'object' ? (ev.text || '') : ev;
-                if (!confirm('삭제하시겠습니까?\n\n' + String(label).substring(0, 80))) return;
-                events[selectedDay].splice(idx, 1);
-                if (events[selectedDay].length === 0) delete events[selectedDay];
-                saveEvents();
-                renderEventList();
-                renderCalendar();
-            }, true);
-        }
-        attachListDeleteHandler(document.getElementById('scheduleList'));
-        attachListDeleteHandler(document.getElementById('leaveList'));
 
         (function initProgressControls() {
             const range = document.getElementById('eventProgress');
