@@ -565,7 +565,7 @@
             </button>
         </div>
     </div>
-    <div class="drag-hint" id="dragHint">드래그: 이동 · Ctrl+드래그: 복사</div>
+    <div class="drag-hint" id="dragHint"></div>
     <div class="calendar">
         <div class="calendar-header">
             <div>
@@ -1425,8 +1425,8 @@
                 if (!events[toDay]) events[toDay] = [];
                 events[toDay].push(evCopy);
 
-                // Ctrl 누르면 복사, 아니면 이동
-                if (!e.ctrlKey) {
+                // Ctrl(Windows) 또는 Cmd(Mac) 누르면 복사, 아니면 이동
+                if (!e.ctrlKey && !e.metaKey) {
                     events[fromDay].splice(idx, 1);
                     if (events[fromDay].length === 0) delete events[fromDay];
                 }
@@ -1435,6 +1435,11 @@
                 renderCalendar();
             } catch {}
         });
+
+        const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform) || /Mac/.test(navigator.userAgent);
+        document.getElementById('dragHint').textContent = isMac
+            ? '드래그: 이동 · ⌘+드래그: 복사'
+            : '드래그: 이동 · Ctrl+드래그: 복사';
 
         updateHeader();
         renderCalendar();
