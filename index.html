@@ -884,7 +884,7 @@
                 <button onclick="nextMonth()">다음 ▶</button>
                 <button class="btn-today" onclick="goToday()">오늘</button>
                 <button class="auth-only btn-memo" onclick="openMemo()">📝 메모</button>
-                <button class="auth-only btn-copy" onclick="copyAsHTML()">게시판 복사</button>
+                <button class="auth-only btn-copy" onclick="copyAsHTML()">일정표 복사</button>
                 <button class="auth-only btn-export" onclick="exportJSON()">내보내기</button>
                 <button class="auth-only btn-import" onclick="document.getElementById('importFile').click()">불러오기</button>
                 <button class="btn-print" onclick="window.print()">인쇄</button>
@@ -2045,7 +2045,7 @@
             const blob = new Blob([html], { type: 'text/html' });
             const item = new ClipboardItem({ 'text/html': blob });
             navigator.clipboard.write([item]).then(() => {
-                alert('클립보드에 복사되었습니다. 게시판에 Ctrl+V로 붙여넣기 하세요.');
+                alert('일정표가 클립보드에 복사되었습니다. Ctrl+V로 붙여넣기 하세요.');
             }).catch(() => {
                 const w = window.open('', '_blank', 'width=900,height=700');
                 w.document.write(html);
