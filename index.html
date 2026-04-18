@@ -1558,7 +1558,7 @@
         }
 
         function handleDayClick(e, day) {
-            if (e && e.altKey) return;
+            if (e && (e.altKey || e.shiftKey)) return;
             const anyTag = e && e.target && e.target.closest('.event-tag, .leave-tag');
             if (dKeyDown && currentUser && anyTag) {
                 e.preventDefault();
@@ -2146,9 +2146,9 @@
         });
         window.addEventListener('blur', function() { copyModifier = false; });
 
-        // Alt(Option)+클릭으로 일정 텍스트 복사 (캡처 단계에서 모달 열림 차단)
+        // Shift+클릭으로 일정 텍스트 복사 (캡처 단계에서 모달 열림 차단)
         calDays.addEventListener('click', function(e) {
-            if (!e.altKey) return;
+            if (!e.shiftKey) return;
             const tag = e.target.closest('.event-tag, .leave-tag');
             if (!tag) return;
             e.preventDefault();
@@ -2247,8 +2247,8 @@
 
         const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform) || /Mac/.test(navigator.userAgent);
         document.getElementById('dragHint').textContent = isMac
-            ? '드래그: 이동 · ⌥+드래그: 복사 · ⌥+클릭: 텍스트 복사'
-            : '드래그: 이동 · Ctrl+드래그: 복사 · Alt+클릭: 텍스트 복사';
+            ? '드래그: 이동 · ⌥+드래그: 복사 · Shift+클릭: 텍스트 복사'
+            : '드래그: 이동 · Ctrl+드래그: 복사 · Shift+클릭: 텍스트 복사';
 
         const eventPlannedBox = document.getElementById('eventPlanned');
         if (eventPlannedBox) {
