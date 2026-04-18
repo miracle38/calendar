@@ -722,7 +722,8 @@
             .toolbar button { padding: 6px 12px; font-size: 0.8em; }
             .day { min-height: 120px; padding: 4px 5px; }
             .day .date-number { font-size: 1em; width: 28px; height: 28px; line-height: 28px; }
-            .day .event-tag { font-size: 0.7em; padding: 3px 5px; margin-bottom: 3px; }
+            .day .event-tag { font-size: 0.7em; padding: 3px 5px 10px; margin-bottom: 3px; }
+            .day .event-tag.planned { padding: 3px 5px 10px; }
             .weekday-cell { font-size: 0.95em; padding: 10px 0; }
         }
 
@@ -741,8 +742,11 @@
             .day { min-height: 80px; padding: 3px 3px; }
             .day.sunday, .day.saturday { min-height: 50px; }
             .day .date-number { font-size: 0.85em; width: 24px; height: 24px; line-height: 24px; }
-            .day .event-tag { font-size: 0.6em; padding: 2px 4px; margin-bottom: 2px; line-height: 1; }
+            .day .event-tag { font-size: 0.6em; padding: 2px 4px 9px; margin-bottom: 2px; line-height: 1; }
+            .day .event-tag.planned { padding: 2px 4px 9px; }
             .day .event-tag .tag-status { font-size: 0.7em; padding: 1px 3px; }
+            .day .event-tag .tag-progress { height: 7px; bottom: 1px; left: 2px; right: 2px; gap: 3px; }
+            .day .event-tag .tag-progress-pct { font-size: 0.68em; }
             .day .leave-tag { font-size: 0.5em; padding: 1px 4px; }
             .day .date-row { margin-bottom: 2px; gap: 2px; }
             .modal { width: 96%; max-width: 100%; }
