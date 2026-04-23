@@ -798,12 +798,109 @@
         .login-box .btn-cancel { background: #f0f0f0; color: #666; }
         .login-box .btn-cancel:hover { background: #e0e0e0; }
 
+        /* 월간 연차 현황 플로팅 */
+        .leave-fab {
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+            cursor: pointer;
+            font-size: 1.35em;
+            z-index: 90;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .leave-fab:hover { transform: translateY(-50%) scale(1.08); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+        .leave-fab.active { background: linear-gradient(135deg, #d63031, #ff6b6b); }
+
+        .leave-panel {
+            position: fixed;
+            right: 92px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 320px;
+            max-height: 75vh;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            padding: 18px 18px 14px;
+            z-index: 89;
+            display: none;
+            overflow-y: auto;
+            font-family: inherit;
+        }
+        .leave-panel.active { display: block; }
+        .leave-panel-title {
+            font-size: 1em;
+            color: #1e3c72;
+            font-weight: 800;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8f0fe;
+        }
+        .leave-user-row {
+            display: flex;
+            flex-direction: column;
+            padding: 9px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .leave-user-row:last-child { border-bottom: none; }
+        .leave-user-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .leave-user-name { font-weight: 700; color: #333; font-size: 0.95em; }
+        .leave-user-total { font-weight: 800; font-size: 0.95em; color: #d63031; }
+        .leave-user-total.zero { color: #bbb; font-weight: 600; }
+        .leave-day-list {
+            margin-top: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .leave-day-chip {
+            font-size: 0.72em;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        .leave-day-chip.vacation { background: #ffe0e6; color: #d63031; }
+        .leave-day-chip.am { background: #e0f0ff; color: #0984e3; }
+        .leave-day-chip.pm { background: #e8f5e9; color: #27ae60; }
+        .leave-panel-summary {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #e8f0fe;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85em;
+            color: #666;
+            font-weight: 600;
+        }
+        .leave-panel-summary strong { color: #1e3c72; }
+
+        @media (max-width: 768px) {
+            .leave-panel { right: 12px; left: 12px; width: auto; top: auto; bottom: 90px; transform: none; max-height: 60vh; }
+            .leave-fab { right: 16px; bottom: 16px; top: auto; transform: none; }
+            .leave-fab:hover { transform: scale(1.08); }
+        }
+
         @media print {
             body { background: #fff; padding: 0; }
             .calendar { box-shadow: none; max-width: 100%; }
             .toolbar { display: none; }
             .day { min-height: 90px; }
             .day:hover { background: none !important; }
+            .leave-fab, .leave-panel { display: none !important; }
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -896,6 +993,14 @@
             <div class="days" id="calendarDays"></div>
         </div>
         <div class="footer">품질관리팀 Calendar</div>
+    </div>
+
+    <!-- 월간 연차 현황 플로팅 -->
+    <button class="leave-fab" id="leaveFab" onclick="toggleLeavePanel()" title="월간 연차 현황">📊</button>
+    <div class="leave-panel" id="leavePanel">
+        <div class="leave-panel-title" id="leavePanelTitle">연차 현황</div>
+        <div id="leavePanelBody"></div>
+        <div class="leave-panel-summary" id="leavePanelSummary"></div>
     </div>
 
     <!-- 모달 -->
@@ -1074,6 +1179,7 @@
         let selectedLeave = null;
         const COLOR_NAMES = ['지란지교소프트', '지란지교데이터', 'DirectCloud', '기타'];
         const LEAVE_LABELS = { vacation: '휴가', am: '오전반차', pm: '오후반차' };
+        const TEAM_MEMBERS = ['김해성', '원교현', '신주영', '김창희', '최선빈', '권서연'];
         const MAX_VISIBLE = 6;
 
         const firebaseConfig = {
@@ -1528,6 +1634,70 @@
             for (let i = 0; i < rem; i++) {
                 c.innerHTML += '<div class="day empty"></div>';
             }
+
+            renderLeaveSummary();
+        }
+
+        function toggleLeavePanel() {
+            const panel = document.getElementById('leavePanel');
+            const fab = document.getElementById('leaveFab');
+            const nowActive = !panel.classList.contains('active');
+            panel.classList.toggle('active', nowActive);
+            fab.classList.toggle('active', nowActive);
+        }
+
+        function renderLeaveSummary() {
+            const stats = {};
+            TEAM_MEMBERS.forEach(m => { stats[m] = { total: 0, days: [] }; });
+
+            Object.keys(events).forEach(d => {
+                const dayEvs = events[d] || [];
+                dayEvs.forEach(ev => {
+                    if (typeof ev === 'object' && ev.leave) {
+                        const name = ev.text || '';
+                        if (!stats[name]) stats[name] = { total: 0, days: [] };
+                        const lt = ev.leaveType || 'vacation';
+                        const amount = lt === 'vacation' ? 1 : 0.5;
+                        stats[name].total += amount;
+                        stats[name].days.push({ day: parseInt(d, 10), type: lt });
+                    }
+                });
+            });
+
+            document.getElementById('leavePanelTitle').textContent = `${currentYear}년 ${currentMonth}월 연차 현황`;
+
+            const names = Object.keys(stats).sort((a, b) => {
+                const ai = TEAM_MEMBERS.indexOf(a);
+                const bi = TEAM_MEMBERS.indexOf(b);
+                if (ai === -1 && bi === -1) return a.localeCompare(b);
+                if (ai === -1) return 1;
+                if (bi === -1) return -1;
+                return ai - bi;
+            });
+
+            let totalDays = 0;
+            let usedCount = 0;
+            const fmtTotal = n => (Number.isInteger(n) ? n : n.toFixed(1));
+            const html = names.map(name => {
+                const s = stats[name];
+                if (s.total > 0) usedCount++;
+                totalDays += s.total;
+                const totalClass = s.total === 0 ? 'zero' : '';
+                const chipsHtml = s.days.slice().sort((a, b) => a.day - b.day || a.type.localeCompare(b.type)).map(d => {
+                    const suffix = d.type === 'am' ? ' 오전' : d.type === 'pm' ? ' 오후' : '';
+                    return `<span class="leave-day-chip ${d.type}">${d.day}일${suffix}</span>`;
+                }).join('');
+                return `<div class="leave-user-row">
+                    <div class="leave-user-head">
+                        <span class="leave-user-name">${escHtml(name)}</span>
+                        <span class="leave-user-total ${totalClass}">${fmtTotal(s.total)}일</span>
+                    </div>
+                    ${chipsHtml ? `<div class="leave-day-list">${chipsHtml}</div>` : ''}
+                </div>`;
+            }).join('');
+
+            document.getElementById('leavePanelBody').innerHTML = html || '<div style="text-align:center; color:#aaa; padding:20px 0;">데이터가 없습니다</div>';
+            document.getElementById('leavePanelSummary').innerHTML = `<span>사용 인원 <strong>${usedCount}</strong>명</span><span>합계 <strong>${fmtTotal(totalDays)}</strong>일</span>`;
         }
 
         function renderColorPicker() {
