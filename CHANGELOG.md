@@ -11,6 +11,14 @@
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-04-24
+
+### Added
+- 푸터 버전 번호 클릭 시 앱 내 팝업에서 버전 이력 확인
+
+### Changed
+- 푸터 버전 링크: GitHub Releases 외부 이동 → 앱 내 팝업으로 전환 (Releases 링크는 팝업 하단에 보조로 유지)
+
 ## [1.0.0] - 2026-04-24
 
 버전 관리를 시작하는 기준점. 이후 모든 변경은 이 문서에 누적 기록한다.
@@ -27,5 +35,6 @@
 - 메모 모달
 - 2026~2030 한국 공휴일 내장
 
-[Unreleased]: https://github.com/miracle38/calendar/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/miracle38/calendar/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/miracle38/calendar/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/miracle38/calendar/releases/tag/v1.0.0
