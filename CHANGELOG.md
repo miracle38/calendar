@@ -11,6 +11,11 @@
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-04-24
+
+### Changed
+- 버전 정보 팝업의 섹션 라벨을 한국어로 변경: `ADDED` / `CHANGED` / `FIXED` → `추가` / `변경` / `수정`
+
 ## [1.0.2] - 2026-04-24
 
 ### Added
@@ -46,7 +51,8 @@
 - 메모 모달
 - 2026~2030 한국 공휴일 내장
 
-[Unreleased]: https://github.com/miracle38/calendar/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/miracle38/calendar/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/miracle38/calendar/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/miracle38/calendar/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/miracle38/calendar/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/miracle38/calendar/releases/tag/v1.0.0

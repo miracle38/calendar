@@ -1071,7 +1071,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.2</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.3</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1147,6 +1147,14 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.0.3',
+                date: '2026-04-24',
+                title: '버전 정보 라벨 한국어화',
+                changed: [
+                    "버전 정보 팝업의 섹션 라벨: 'ADDED' / 'CHANGED' / 'FIXED' → '추가' / '변경' / '수정'",
+                ],
+            },
             {
                 version: '1.0.2',
                 date: '2026-04-24',
@@ -1605,9 +1613,9 @@
                         ${v.title ? `<span class="version-title">${esc(v.title)}</span>` : ''}
                     </div>
                     ${v.note ? `<div class="version-note">${esc(v.note)}</div>` : ''}
-                    ${section('ADDED', v.added, 'added')}
-                    ${section('CHANGED', v.changed, 'changed')}
-                    ${section('FIXED', v.fixed, 'fixed')}
+                    ${section('추가', v.added, 'added')}
+                    ${section('변경', v.changed, 'changed')}
+                    ${section('수정', v.fixed, 'fixed')}
                 </div>
             `).join('');
         }
