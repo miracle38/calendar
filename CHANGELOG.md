@@ -11,6 +11,11 @@
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-04-28
+
+### Added
+- 연차 유형에 '공가' 추가 (보라색 배지) — 차감 합계와는 별도로 `공가 N일` 형태로 카운트되어 휴가/반차 차감 일수와 분리 표시됨
+
 ## [1.0.3] - 2026-04-24
 
 ### Changed
@@ -51,7 +56,8 @@
 - 메모 모달
 - 2026~2030 한국 공휴일 내장
 
-[Unreleased]: https://github.com/miracle38/calendar/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/miracle38/calendar/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/miracle38/calendar/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/miracle38/calendar/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/miracle38/calendar/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/miracle38/calendar/compare/v1.0.0...v1.0.1

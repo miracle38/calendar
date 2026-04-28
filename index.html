@@ -729,10 +729,13 @@
         .leave-btn.type-am.on { border-color: #0984e3; }
         .leave-btn.type-pm { background: #e8f5e9; color: #27ae60; }
         .leave-btn.type-pm.on { border-color: #27ae60; }
+        .leave-btn.type-official { background: #ede7ff; color: #6c5ce7; }
+        .leave-btn.type-official.on { border-color: #6c5ce7; }
 
         .day .leave-tag.vacation { background: #ffe0e6; color: #d63031; }
         .day .leave-tag.am { background: #e0f0ff; color: #0984e3; }
         .day .leave-tag.pm { background: #e8f5e9; color: #27ae60; }
+        .day .leave-tag.official { background: #ede7ff; color: #6c5ce7; }
 
         .event-list li .li-leave {
             font-size: 0.85em;
@@ -745,6 +748,7 @@
         .li-leave.vacation { background: #ffe0e6; color: #d63031; }
         .li-leave.am { background: #e0f0ff; color: #0984e3; }
         .li-leave.pm { background: #e8f5e9; color: #27ae60; }
+        .li-leave.official { background: #ede7ff; color: #6c5ce7; }
 
         #memberSelect {
             padding: 6px 10px;
@@ -926,6 +930,8 @@
         .leave-user-name { font-weight: 700; color: #333; font-size: 0.95em; }
         .leave-user-total { font-weight: 800; font-size: 0.95em; color: #d63031; }
         .leave-user-total.zero { color: #bbb; font-weight: 600; }
+        .leave-user-totals { display: flex; gap: 8px; align-items: center; }
+        .leave-user-official { font-weight: 700; font-size: 0.85em; color: #6c5ce7; background: #ede7ff; padding: 2px 7px; border-radius: 10px; }
         .leave-day-list {
             margin-top: 6px;
             display: flex;
@@ -943,6 +949,7 @@
         .leave-day-chip.vacation { background: #ffe0e6; color: #d63031; }
         .leave-day-chip.am { background: #e0f0ff; color: #0984e3; }
         .leave-day-chip.pm { background: #e8f5e9; color: #27ae60; }
+        .leave-day-chip.official { background: #ede7ff; color: #6c5ce7; }
         .leave-panel-summary {
             margin-top: 10px;
             padding-top: 10px;
@@ -1071,7 +1078,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.3</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.4</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1124,6 +1131,7 @@
                     <button class="leave-btn type-vacation off" onclick="toggleLeave('vacation')">휴가</button>
                     <button class="leave-btn type-am off" onclick="toggleLeave('am')">오전반차</button>
                     <button class="leave-btn type-pm off" onclick="toggleLeave('pm')">오후반차</button>
+                    <button class="leave-btn type-official off" onclick="toggleLeave('official')">공가</button>
                     <div id="leaveForm" style="display:none; align-items:center; gap:8px;">
                         <select id="memberSelect">
                             <option value="">팀원 선택</option>
@@ -1147,6 +1155,14 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.0.4',
+                date: '2026-04-28',
+                title: '연차 유형 - 공가 추가',
+                added: [
+                    "연차 유형에 '공가' 추가 (보라색 배지) — 차감 합계와 별도로 '공가 N일'로 카운트되어 휴가/반차 일수와 분리 표시",
+                ],
+            },
             {
                 version: '1.0.3',
                 date: '2026-04-24',
@@ -1309,7 +1325,7 @@
         let selectedColor = 0;
         let selectedLeave = null;
         const COLOR_NAMES = ['지란지교소프트', '지란지교데이터', 'DirectCloud', '기타'];
-        const LEAVE_LABELS = { vacation: '휴가', am: '오전반차', pm: '오후반차' };
+        const LEAVE_LABELS = { vacation: '휴가', am: '오전반차', pm: '오후반차', official: '공가' };
         const TEAM_MEMBERS = ['김해성', '원교현', '신주영', '김창희', '최선빈', '권서연'];
         const MAX_VISIBLE = 6;
 
@@ -1421,7 +1437,7 @@
 
         // 허용된 leaveType 만 통과 (화이트리스트)
         function safeLeaveType(v) {
-            return (v === 'vacation' || v === 'am' || v === 'pm') ? v : 'vacation';
+            return (v === 'vacation' || v === 'am' || v === 'pm' || v === 'official') ? v : 'vacation';
         }
 
         // 메모 HTML sanitizer - 저장된 HTML을 innerHTML 로 렌더하기 전/붙여넣기 시 사용
@@ -1868,17 +1884,20 @@
 
         function renderLeaveSummary() {
             const stats = {};
-            TEAM_MEMBERS.forEach(m => { stats[m] = { total: 0, days: [] }; });
+            TEAM_MEMBERS.forEach(m => { stats[m] = { total: 0, official: 0, days: [] }; });
 
             Object.keys(events).forEach(d => {
                 const dayEvs = events[d] || [];
                 dayEvs.forEach(ev => {
                     if (typeof ev === 'object' && ev.leave) {
                         const name = ev.text || '';
-                        if (!stats[name]) stats[name] = { total: 0, days: [] };
+                        if (!stats[name]) stats[name] = { total: 0, official: 0, days: [] };
                         const lt = ev.leaveType || 'vacation';
-                        const amount = lt === 'vacation' ? 1 : 0.5;
-                        stats[name].total += amount;
+                        if (lt === 'official') {
+                            stats[name].official += 1;
+                        } else {
+                            stats[name].total += (lt === 'am' || lt === 'pm') ? 0.5 : 1;
+                        }
                         stats[name].days.push({ day: parseInt(d, 10), type: lt });
                     }
                 });
@@ -1896,13 +1915,16 @@
             });
 
             let totalDays = 0;
+            let totalOfficial = 0;
             let usedCount = 0;
             const fmtTotal = n => (Number.isInteger(n) ? n : n.toFixed(1));
             const html = names.map(name => {
                 const s = stats[name];
-                if (s.total > 0) usedCount++;
+                if (s.total > 0 || s.official > 0) usedCount++;
                 totalDays += s.total;
+                totalOfficial += s.official;
                 const totalClass = s.total === 0 ? 'zero' : '';
+                const officialBadge = s.official > 0 ? `<span class="leave-user-official">공가 ${s.official}일</span>` : '';
                 const chipsHtml = s.days.slice().sort((a, b) => a.day - b.day || a.type.localeCompare(b.type)).map(d => {
                     const suffix = d.type === 'am' ? ' 오전' : d.type === 'pm' ? ' 오후' : '';
                     return `<span class="leave-day-chip ${d.type}">${d.day}일${suffix}</span>`;
@@ -1910,14 +1932,18 @@
                 return `<div class="leave-user-row">
                     <div class="leave-user-head">
                         <span class="leave-user-name">${escHtml(name)}</span>
-                        <span class="leave-user-total ${totalClass}">${fmtTotal(s.total)}일</span>
+                        <span class="leave-user-totals">
+                            ${officialBadge}
+                            <span class="leave-user-total ${totalClass}">${fmtTotal(s.total)}일</span>
+                        </span>
                     </div>
                     ${chipsHtml ? `<div class="leave-day-list">${chipsHtml}</div>` : ''}
                 </div>`;
             }).join('');
 
             document.getElementById('leavePanelBody').innerHTML = html || '<div style="text-align:center; color:#aaa; padding:20px 0;">데이터가 없습니다</div>';
-            document.getElementById('leavePanelSummary').innerHTML = `<span>사용 인원 <strong>${usedCount}</strong>명</span><span>합계 <strong>${fmtTotal(totalDays)}</strong>일</span>`;
+            const officialSummary = totalOfficial > 0 ? `<span>공가 <strong>${totalOfficial}</strong>일</span>` : '';
+            document.getElementById('leavePanelSummary').innerHTML = `<span>사용 인원 <strong>${usedCount}</strong>명</span><span>합계 <strong>${fmtTotal(totalDays)}</strong>일</span>${officialSummary}`;
         }
 
         function renderColorPicker() {
@@ -2310,7 +2336,7 @@
         function cycleLeaveType(index) {
             if (selectedDay === null) return;
             const ev = events[selectedDay][index];
-            const types = ['vacation', 'am', 'pm'];
+            const types = ['vacation', 'am', 'pm', 'official'];
             const curr = types.indexOf(safeLeaveType(ev.leaveType));
             ev.leaveType = types[(curr + 1) % types.length];
             saveEvents();
@@ -2344,7 +2370,7 @@
             const startOffset = new Date(currentYear, currentMonth - 1, 1).getDay();
             const totalDays = new Date(currentYear, currentMonth, 0).getDate();
             const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#8b4513', 3: '#be185d' };
-            const leaveColors = { vacation: { bg: '#ffe0e6', color: '#d63031' }, am: { bg: '#e0f0ff', color: '#0984e3' }, pm: { bg: '#e8f5e9', color: '#27ae60' } };
+            const leaveColors = { vacation: { bg: '#ffe0e6', color: '#d63031' }, am: { bg: '#e0f0ff', color: '#0984e3' }, pm: { bg: '#e8f5e9', color: '#27ae60' }, official: { bg: '#ede7ff', color: '#6c5ce7' } };
             const statusColors = { done: { bg: '#fbbf24', color: '#333' }, final: { bg: '#f43f5e', color: '#fff' } };
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
             const dayColors = ['#e74c3c', '#333', '#333', '#333', '#333', '#333', '#3498db'];
