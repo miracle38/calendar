@@ -323,6 +323,13 @@
 
         .day.holiday .date-number { color: #e74c3c !important; }
 
+        .day .note-icon {
+            font-size: 0.78em;
+            line-height: 1;
+            flex-shrink: 0;
+            filter: saturate(1.1);
+        }
+
         .day .holiday-name {
             font-size: 0.65em;
             color: #e74c3c;
@@ -598,6 +605,44 @@
         .event-list li span.leave-name { flex: none; }
         .event-list li span.leave-type-wrap { flex: none; }
         .event-list li span.leave-type-wrap[onclick] { cursor: pointer; }
+
+        .day-note-box {
+            margin: 12px 0 4px;
+            padding: 10px 12px;
+            background: #fffbe6;
+            border: 1px solid #ffe58f;
+            border-radius: 8px;
+        }
+        .day-note-head {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.82em; font-weight: 700; color: #856404; margin-bottom: 6px;
+        }
+        .day-note-hint { font-size: 0.72em; color: #b08800; font-weight: 500; }
+        .day-note-box .memo-toolbar {
+            padding: 4px 6px; gap: 2px;
+            border-radius: 6px 6px 0 0;
+            background: #fffaeb; border-color: #ffe58f;
+        }
+        .day-note-box .memo-toolbar button {
+            padding: 3px 7px; font-size: 0.82em; min-width: 24px;
+        }
+        .day-note-box .memo-toolbar input[type=color] {
+            width: 22px; height: 20px;
+        }
+        .day-note-box .memo-toolbar .tb-sep {
+            height: 16px; margin: 0 2px;
+        }
+        .day-note-editor {
+            min-height: 100px; max-height: 260px;
+            padding: 8px 10px; font-size: 0.88em;
+            border-radius: 0 0 6px 6px;
+            border-color: #ffe58f;
+            background: #fffef7;
+        }
+        .day-note-editor:focus {
+            border-color: #d48806; background: #fff;
+            box-shadow: 0 0 0 1px rgba(212,136,6,0.15);
+        }
 
         .edit-input {
             flex: 1; padding: 6px 10px;
@@ -1078,7 +1123,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.4</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.5</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1125,6 +1170,28 @@
                     </div>
                 </div>
                 <ul class="event-list" id="scheduleList"></ul>
+                <div class="day-note-box" id="dayNoteBox" style="display:none;">
+                    <div class="day-note-head">
+                        <span>📝 이 날 메모</span>
+                        <span class="day-note-hint">자동 저장 · Ctrl+Enter</span>
+                    </div>
+                    <div class="memo-toolbar" id="dayNoteToolbar">
+                        <button type="button" class="tb-bold" data-cmd="bold" title="굵게 (Ctrl+B)">B</button>
+                        <button type="button" class="tb-italic" data-cmd="italic" title="기울임 (Ctrl+I)">I</button>
+                        <button type="button" class="tb-underline" data-cmd="underline" title="밑줄 (Ctrl+U)">U</button>
+                        <button type="button" class="tb-strike" data-cmd="strikeThrough" title="취소선">S</button>
+                        <span class="tb-sep"></span>
+                        <button type="button" data-cmd="insertUnorderedList" title="글머리 기호">•</button>
+                        <button type="button" data-cmd="insertOrderedList" title="번호 매기기">1.</button>
+                        <span class="tb-sep"></span>
+                        <button type="button" data-cmd="highlight" title="형광펜">🖍</button>
+                        <input type="color" id="dayNoteColorPicker" title="글자색" value="#1f2937">
+                        <span class="tb-sep"></span>
+                        <button type="button" data-cmd="createLink" title="링크 삽입">🔗</button>
+                        <button type="button" data-cmd="removeFormat" title="서식 제거">✕ᴀ</button>
+                    </div>
+                    <div class="memo-editor day-note-editor" id="dayNoteEditor" contenteditable="true" data-placeholder="이 날에 대한 공유 메모..."></div>
+                </div>
                 <hr style="border:none; border-top:1px solid #e0e0e0; margin:20px 0;">
                 <div class="section-title">🗓 연차</div>
                 <div class="leave-options" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:8px;">
@@ -1155,6 +1222,16 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.0.5',
+                date: '2026-04-28',
+                title: '날짜별 공유 메모 (로그인 전용)',
+                added: [
+                    "사이드 패널에 '이 날 메모' 추가 — 선택한 날짜에 로그인 팀원끼리 공유되는 메모 작성/저장",
+                    '메모가 있는 날짜는 캘린더 타일에 📝 아이콘으로 표시',
+                    '메모 입력란에 서식 에디터 적용: 굵게/기울임/밑줄/취소선, 글머리표/번호, 형광펜·글자색, 링크 (Ctrl+B/I/U, Ctrl+Enter 저장)',
+                ],
+            },
             {
                 version: '1.0.4',
                 date: '2026-04-28',
@@ -1366,8 +1443,10 @@
                 }
                 currentUser = user;
                 updateAuthUI();
+                setupNotesListener();
                 renderCalendar();
                 if (selectedDay !== null) renderEventList();
+                refreshDayNoteBox();
             });
         } catch (e) {
             console.warn('Firebase 초기화 실패, localStorage만 사용합니다.', e);
@@ -1729,6 +1808,12 @@
             return `calendar/${currentYear}_${String(currentMonth).padStart(2,'0')}`;
         }
 
+        function notesDbPath() {
+            return `calendar_notes/${currentYear}_${String(currentMonth).padStart(2,'0')}`;
+        }
+
+        let currentNotesListenerPath = null;
+
         function setupListener() {
             if (!db) return;
             if (currentListenerPath) {
@@ -1742,13 +1827,40 @@
                 renderCalendar();
                 if (selectedDay !== null) renderEventList();
             });
+            setupNotesListener();
+        }
+
+        function setupNotesListener() {
+            if (!db) return;
+            if (currentNotesListenerPath) {
+                db.ref(currentNotesListenerPath).off();
+                currentNotesListenerPath = null;
+            }
+            if (!currentUser) {
+                dayNotes = {};
+                refreshDayNoteBox();
+                return;
+            }
+            currentNotesListenerPath = notesDbPath();
+            db.ref(currentNotesListenerPath).on('value', function(snapshot) {
+                const val = snapshot.val();
+                dayNotes = val ? JSON.parse(val) : {};
+                localStorage.setItem(notesStorageKey(), JSON.stringify(dayNotes));
+                refreshDayNoteBox();
+                renderCalendar();
+            });
         }
 
         function storageKey() {
             return `khs_calendar_${currentYear}_${String(currentMonth).padStart(2,'0')}`;
         }
 
+        function notesStorageKey() {
+            return `khs_calendar_notes_${currentYear}_${String(currentMonth).padStart(2,'0')}`;
+        }
+
         let events = JSON.parse(localStorage.getItem(storageKey()) || '{}');
+        let dayNotes = JSON.parse(localStorage.getItem(notesStorageKey()) || '{}');
 
         function escHtml(str) {
             return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -1759,8 +1871,48 @@
             if (db) db.ref(dbPath()).set(JSON.stringify(events));
         }
 
+        function saveDayNotes() {
+            localStorage.setItem(notesStorageKey(), JSON.stringify(dayNotes));
+            if (db) db.ref(notesDbPath()).set(JSON.stringify(dayNotes));
+        }
+
+        function refreshDayNoteBox() {
+            const box = document.getElementById('dayNoteBox');
+            const editor = document.getElementById('dayNoteEditor');
+            if (!box || !editor) return;
+            if (!currentUser || selectedDay === null) {
+                box.style.display = 'none';
+                return;
+            }
+            box.style.display = 'block';
+            if (document.activeElement !== editor) {
+                const raw = dayNotes[selectedDay] || '';
+                const looksHtml = /<[a-z][\s\S]*>/i.test(raw);
+                const html = looksHtml ? raw : escHtml(raw).replace(/\n/g, '<br>');
+                editor.innerHTML = sanitizeMemoHtml(html);
+            }
+        }
+
+        function saveDayNote() {
+            if (!currentUser || selectedDay === null) return;
+            const editor = document.getElementById('dayNoteEditor');
+            if (!editor) return;
+            const html = sanitizeMemoHtml(editor.innerHTML || '');
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            const isEmpty = !tmp.textContent.trim() && !tmp.querySelector('img,hr');
+            const finalValue = isEmpty ? '' : html;
+            const prev = dayNotes[selectedDay] || '';
+            if (finalValue === prev) return;
+            if (finalValue) dayNotes[selectedDay] = finalValue;
+            else delete dayNotes[selectedDay];
+            saveDayNotes();
+            renderCalendar();
+        }
+
         function loadEvents() {
             events = JSON.parse(localStorage.getItem(storageKey()) || '{}');
+            dayNotes = JSON.parse(localStorage.getItem(notesStorageKey()) || '{}');
             setupListener();
         }
 
@@ -1863,7 +2015,8 @@
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
                 }
 
-                c.innerHTML += `<div class="${cls}" data-day="${d}" onclick="handleDayClick(event, ${d})"><div class="date-row"><span class="date-number">${d}</span>${holidayHtml}${leaveHtml}</div>${evHtml}</div>`;
+                const noteIconHtml = (currentUser && dayNotes[d]) ? '<span class="note-icon" title="메모 있음">📝</span>' : '';
+                c.innerHTML += `<div class="${cls}" data-day="${d}" onclick="handleDayClick(event, ${d})"><div class="date-row"><span class="date-number">${d}</span>${noteIconHtml}${holidayHtml}${leaveHtml}</div>${evHtml}</div>`;
             }
 
             const rem = (7 - (startOffset + totalDays) % 7) % 7;
@@ -2110,6 +2263,7 @@
 
             scheduleList.innerHTML = schedules.length ? schedules.join('') : '<div class="no-events">등록된 제품 일정이 없습니다</div>';
             leaveList.innerHTML = leaves.length ? leaves.join('') : '<div class="no-events">등록된 연차가 없습니다</div>';
+            refreshDayNoteBox();
         }
 
         function addLeave() {
@@ -2714,10 +2868,10 @@
             });
         })();
 
-        (function initMemoEditor() {
-            const toolbar = document.getElementById('memoToolbar');
-            const editor = document.getElementById('memoEditor');
-            const colorPicker = document.getElementById('memoColorPicker');
+        function attachRichEditor(toolbarId, editorId, colorPickerId) {
+            const toolbar = document.getElementById(toolbarId);
+            const editor = document.getElementById(editorId);
+            const colorPicker = colorPickerId ? document.getElementById(colorPickerId) : null;
             if (!toolbar || !editor) return;
 
             function exec(cmd, val) {
@@ -2804,6 +2958,21 @@
             editor.addEventListener('mouseup', updateToolbarState);
             document.addEventListener('selectionchange', function() {
                 if (document.activeElement === editor) updateToolbarState();
+            });
+        }
+
+        attachRichEditor('memoToolbar', 'memoEditor', 'memoColorPicker');
+        attachRichEditor('dayNoteToolbar', 'dayNoteEditor', 'dayNoteColorPicker');
+
+        (function initDayNoteHandlers() {
+            const editor = document.getElementById('dayNoteEditor');
+            if (!editor) return;
+            editor.addEventListener('blur', saveDayNote);
+            editor.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    editor.blur();
+                }
             });
         })();
 

@@ -11,6 +11,13 @@
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-04-28
+
+### Added
+- **이 날 메모** (날짜별 공유 메모, 로그인 전용) — 사이드 패널에서 선택한 날짜에 메모를 작성/공유. 캘린더 타일에는 메모가 있을 때 📝 아이콘으로 표시
+- 메모 입력란에 서식 에디터 적용: 굵게/기울임/밑줄/취소선, 글머리표/번호 매기기, 형광펜·글자색, 링크 삽입, 서식 제거 (Ctrl+B/I/U, Ctrl+Enter로 저장)
+- Firebase 룰 `calendar_notes` 경로 추가 — 비로그인 사용자는 메모 데이터에 접근 불가
+
 ## [1.0.4] - 2026-04-28
 
 ### Added
@@ -56,7 +63,8 @@
 - 메모 모달
 - 2026~2030 한국 공휴일 내장
 
-[Unreleased]: https://github.com/miracle38/calendar/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/miracle38/calendar/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/miracle38/calendar/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/miracle38/calendar/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/miracle38/calendar/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/miracle38/calendar/compare/v1.0.1...v1.0.2
