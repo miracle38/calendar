@@ -11,6 +11,11 @@
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-04-28
+
+### Fixed
+- 페이지 새로고침 시 캘린더 타일의 메모 📝 아이콘이 늦게 표시되던 문제 — Firebase Auth 비동기 로딩 중에 `currentUser`가 잠깐 null이라 도트 조건이 false였고, 동시에 노트 listener의 가드가 `dayNotes`를 빈 객체로 덮어쓰던 동작 수정. 이제 `loggedIn` 캐시가 있으면 첫 렌더부터 캐시된 메모 데이터로 아이콘이 즉시 표시됨
+
 ## [1.0.5] - 2026-04-28
 
 ### Added
@@ -63,7 +68,8 @@
 - 메모 모달
 - 2026~2030 한국 공휴일 내장
 
-[Unreleased]: https://github.com/miracle38/calendar/compare/v1.0.5...HEAD
+[Unreleased]: https://github.com/miracle38/calendar/compare/v1.0.6...HEAD
+[1.0.6]: https://github.com/miracle38/calendar/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/miracle38/calendar/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/miracle38/calendar/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/miracle38/calendar/compare/v1.0.2...v1.0.3

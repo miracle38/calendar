@@ -1123,7 +1123,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.5</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.6</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1222,6 +1222,14 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.0.6',
+                date: '2026-04-28',
+                title: '메모 아이콘 표시 지연 수정',
+                fixed: [
+                    '새로고침 시 캘린더 타일의 메모 📝 아이콘이 늦게 표시되던 문제 — Firebase Auth 비동기 로딩 중 캐시된 메모가 잠깐 사라지던 동작 수정. 이제 첫 렌더부터 즉시 표시',
+                ],
+            },
             {
                 version: '1.0.5',
                 date: '2026-04-28',
@@ -1837,7 +1845,10 @@
                 currentNotesListenerPath = null;
             }
             if (!currentUser) {
-                dayNotes = {};
+                if (localStorage.getItem('loggedIn') !== 'true') {
+                    dayNotes = {};
+                    localStorage.removeItem(notesStorageKey());
+                }
                 refreshDayNoteBox();
                 return;
             }
@@ -2015,7 +2026,7 @@
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
                 }
 
-                const noteIconHtml = (currentUser && dayNotes[d]) ? '<span class="note-icon" title="메모 있음">📝</span>' : '';
+                const noteIconHtml = (isAuthView && dayNotes[d]) ? '<span class="note-icon" title="메모 있음">📝</span>' : '';
                 c.innerHTML += `<div class="${cls}" data-day="${d}" onclick="handleDayClick(event, ${d})"><div class="date-row"><span class="date-number">${d}</span>${noteIconHtml}${holidayHtml}${leaveHtml}</div>${evHtml}</div>`;
             }
 
