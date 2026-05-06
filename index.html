@@ -1123,7 +1123,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.6</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.7</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1222,6 +1222,14 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.0.7',
+                date: '2026-05-06',
+                title: '진입 시 오늘 월 기본 표시',
+                fixed: [
+                    '페이지 진입 시 캘린더가 항상 4월로 표시되던 문제 — 초기값을 `new Date()` 기반으로 변경. 이제 접속 시 오늘이 포함된 월(2026~2030 범위 내)이 기본 표시됨',
+                ],
+            },
             {
                 version: '1.0.6',
                 date: '2026-04-28',
@@ -1404,8 +1412,14 @@
             return HOLIDAYS[`${year}-${month}-${day}`] || null;
         }
 
-        let currentYear = 2026;
-        let currentMonth = 4;
+        let currentYear, currentMonth;
+        (() => {
+            const now = new Date();
+            currentYear = now.getFullYear();
+            currentMonth = now.getMonth() + 1;
+            if (currentYear < 2026) { currentYear = 2026; currentMonth = 1; }
+            if (currentYear > 2030) { currentYear = 2030; currentMonth = 12; }
+        })();
         let selectedDay = null;
         let selectedColor = 0;
         let selectedLeave = null;

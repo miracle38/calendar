@@ -11,6 +11,11 @@
 
 ## [Unreleased]
 
+## [1.0.7] - 2026-05-06
+
+### Fixed
+- 페이지 진입 시 캘린더가 항상 4월로 표시되던 문제 — 초기값이 `2026, 4`로 하드코딩되어 있던 것을 `new Date()` 기반으로 변경. 이제 접속 시 오늘이 포함된 월(2026~2030 범위 내)이 기본 표시됨
+
 ## [1.0.6] - 2026-04-28
 
 ### Fixed
@@ -68,7 +73,8 @@
 - 메모 모달
 - 2026~2030 한국 공휴일 내장
 
-[Unreleased]: https://github.com/miracle38/calendar/compare/v1.0.6...HEAD
+[Unreleased]: https://github.com/miracle38/calendar/compare/v1.0.7...HEAD
+[1.0.7]: https://github.com/miracle38/calendar/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/miracle38/calendar/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/miracle38/calendar/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/miracle38/calendar/compare/v1.0.3...v1.0.4
