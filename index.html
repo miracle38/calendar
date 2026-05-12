@@ -662,21 +662,24 @@
         .event-url-input:focus { border-color: #1e3c72; background: #fff; }
         .event-url-input::placeholder { color: #94a3b8; }
 
-        /* 일정 태그 호버 시 새 탭 아이콘 */
+        /* 일정 태그의 새 탭 아이콘 — 상시 표시, [완료]/[최종] 뱃지 위에 매달리는 형태
+           태그 위로 살짝 튀어나와 태그 자체 높이는 그대로 유지. 인라인 뱃지의 우측 위에 위치하여 시각적으로 그룹 */
         .day .event-tag .tag-url-btn {
-            position: absolute; top: 2px; right: 2px;
-            width: 18px; height: 18px;
-            display: none; align-items: center; justify-content: center;
-            background: rgba(255,255,255,0.96); color: #1e3c72;
-            border-radius: 3px; font-size: 11px;
+            position: absolute; top: -6px; right: 3px;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 18px; height: 12px;
+            background: #1e3c72; color: #fff;
+            border-radius: 3px; font-size: 9px;
             cursor: pointer; line-height: 1; text-decoration: none;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            transition: transform 0.12s, background 0.12s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+            transition: transform 0.12s, background 0.12s, color 0.12s;
+            z-index: 2;
         }
-        .day .event-tag:hover .tag-url-btn { display: flex; }
         .day .event-tag .tag-url-btn:hover {
-            background: #fff; color: #d63031; transform: scale(1.12);
+            background: #d63031; color: #fff; transform: scale(1.12);
         }
+        /* 첫 번째 이벤트 태그는 date-row 와 부딪힐 수 있어 약간만 띄움 */
+        .day .event-tag:first-of-type .tag-url-btn { top: -4px; }
 
         /* 모달 일정 리스트의 URL 아이콘 */
         .li-url-btn {
@@ -1208,7 +1211,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.2.0</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.2.1</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1309,6 +1312,15 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.2.1',
+                date: '2026-05-12',
+                title: 'URL 동작 다듬기',
+                changed: [
+                    '한 일정에 URL을 등록/변경하면 같은 텍스트의 다른 모든 일정에 같은 URL이 자동 적용됨 — "회의 X" 일정이 5일/12일/19일에 있을 때 한 곳만 등록하면 나머지에도 즉시 반영',
+                    '캘린더 타일의 🔗 아이콘을 마우스 오버가 아닌 상시 표시로 변경 — [완료]/[최종] 뱃지 바로 위에 작은 탭 형태로 매달림. 태그 높이는 그대로 유지되고 텍스트 폭도 줄지 않음',
+                ],
+            },
             {
                 version: '1.2.0',
                 date: '2026-05-12',
@@ -2229,8 +2241,9 @@
                     const progressTitle = progress > 0 ? ' · ' + progress + '%' : '';
                     const progressHtml = progress > 0 ? `<div class="tag-progress"><div class="tag-progress-bar"><div class="tag-progress-fill" style="width:${progress}%"></div></div><span class="tag-progress-pct">${progress}%</span></div>` : '';
                     const hasUrl = isAuthView && typeof ev === 'object' && typeof ev.url === 'string' && ev.url;
+                    const urlCls = hasUrl ? ' has-url' : '';
                     const urlBtnHtml = hasUrl ? `<a class="tag-url-btn" href="${escHtml(ev.url)}" target="_blank" rel="noopener noreferrer" title="새 탭으로 열기: ${escHtml(ev.url)}" onclick="event.stopPropagation()" draggable="false">🔗</a>` : '';
-                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${progressHtml}${urlBtnHtml}</div>`;
+                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}${urlCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${progressHtml}${urlBtnHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
@@ -2562,6 +2575,23 @@
             renderCalendar();
         }
 
+        // 같은 텍스트의 일정들에 같은 URL 적용 (set 또는 clear). exceptKey 는 "day:idx" 형태로 자신 제외.
+        // 일정 텍스트가 같으면 URL 도 같아야 한다는 불변식을 유지하기 위함.
+        function propagateUrlForSameText(text, url, exceptKey) {
+            if (!text) return;
+            Object.keys(events).forEach(d => {
+                const arr = events[d];
+                if (!Array.isArray(arr)) return;
+                arr.forEach((ev, i) => {
+                    if (typeof ev !== 'object' || ev.leave) return;
+                    if ((d + ':' + i) === exceptKey) return;
+                    if (ev.text !== text) return;
+                    if (url) ev.url = url;
+                    else delete ev.url;
+                });
+            });
+        }
+
         // URL 정규화: 빈 값/공백은 null. http(s):// 없으면 https:// 자동 부여.
         // javascript: / data: / vbscript: 스킴은 보안상 거부.
         function normalizeEventUrl(raw) {
@@ -2592,6 +2622,8 @@
             if (progress > 0) newEv.progress = progress;
             if (url) newEv.url = url;
             events[selectedDay].push(newEv);
+            const newIdx = events[selectedDay].length - 1;
+            if (url) propagateUrlForSameText(text, url, selectedDay + ':' + newIdx);
             saveEvents();
             input.value = '';
             input.focus();
@@ -2745,6 +2777,7 @@
             function save() {
                 const newText = textarea.value.trim();
                 const newUrl = normalizeEventUrl(urlInput.value);
+                const prevUrl = typeof ev === 'object' ? (ev.url || null) : null;
                 if (newText && typeof ev === 'object') {
                     ev.text = newText;
                     ev.color = editColor;
@@ -2757,6 +2790,9 @@
                     if (editProgress > 0) next.progress = editProgress;
                     if (newUrl) next.url = newUrl;
                     events[selectedDay][index] = next;
+                }
+                if (newText && (newUrl || prevUrl) && newUrl !== prevUrl) {
+                    propagateUrlForSameText(newText, newUrl, selectedDay + ':' + index);
                 }
                 saveEvents();
                 renderEventList();
