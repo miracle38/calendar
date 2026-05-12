@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "캘린더 연차 자동 동기화",
+  "short_name": "LeaveSync",
+  "description": "그룹웨어 페이지 방문 시 잔여 연차 정보를 자동으로 캘린더 Firebase로 동기화",
+  "version": "1.0.0",
+  "permissions": ["alarms", "storage", "notifications"],
+  "host_permissions": [
+    "https://jiran.groupware.pro/*",
+    "https://jiran.api.groupware.pro/*",
+    "https://identitytoolkit.googleapis.com/*",
+    "https://securetoken.googleapis.com/*",
+    "https://calendar-6df01-default-rtdb.firebaseio.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "캘린더 연차 동기화",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

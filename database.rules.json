@@ -16,7 +16,7 @@
     },
     "annual_leave": {
       ".read": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')",
-      ".write": false
+      ".write": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')"
     },
     "baseball": {
       ".read": true,
