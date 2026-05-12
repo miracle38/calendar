@@ -1,18 +1,18 @@
 @echo off
 chcp 65001 > nul
-title 캘린더 - 그룹웨어 연차 동기화
+title Calendar Sync
 cd /d "%~dp0"
 
-echo ===================================================
-echo   그룹웨어 연차 동기화 시작
-echo   (SSO 세션 만료 시 sync-debug.bat 으로 재로그인)
-echo ===================================================
+echo ====================================================
+echo   Calendar - Groupware Annual Leave Sync
+echo   (Use sync-debug.bat if SSO session expired)
+echo ====================================================
 echo.
 
 call npm run sync
 
 echo.
-echo ===================================================
-echo   완료. 아무 키나 누르면 창이 닫힙니다.
-echo ===================================================
+echo ====================================================
+echo   Done. Press any key to close window.
+echo ====================================================
 pause > nul

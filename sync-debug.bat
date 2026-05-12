@@ -1,22 +1,22 @@
 @echo off
 chcp 65001 > nul
-title 캘린더 - 그룹웨어 SSO 재로그인 모드
+title Calendar Sync (SSO Re-login)
 cd /d "%~dp0"
 
-echo ===================================================
-echo   그룹웨어 SSO 재로그인 모드
+echo ====================================================
+echo   Calendar - Groupware SSO Re-login Mode
 echo.
-echo   잠시 후 크롬 창이 열립니다.
-echo   평소처럼 SSO 로그인을 끝내고 그루웨어 메인 화면이
-echo   보일 때까지 두면 자동으로 다음 단계로 넘어갑니다.
-echo   (최대 5분 대기)
-echo ===================================================
+echo   A Chrome window will open shortly.
+echo   Please log in via SSO as usual and wait until the
+echo   groupware main page appears. The script will then
+echo   continue automatically. (Max 5 minutes wait)
+echo ====================================================
 echo.
 
 call npm run sync:debug
 
 echo.
-echo ===================================================
-echo   완료. 아무 키나 누르면 창이 닫힙니다.
-echo ===================================================
+echo ====================================================
+echo   Done. Press any key to close window.
+echo ====================================================
 pause > nul
