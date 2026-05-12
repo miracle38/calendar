@@ -1172,7 +1172,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.8</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.9</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1272,6 +1272,15 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.0.9',
+                date: '2026-05-12',
+                title: '연차 패널 첫 표시 깜빡임 해결',
+                fixed: [
+                    '월간 연차 현황 패널 진입 시 연간 잔여/사용/총 수치가 잠시 비었다가 나타나던 문제 — Firebase 응답을 기다리지 않고 localStorage 캐시에서 즉시 표시 (events/메모와 동일 패턴)',
+                    '연도 이동 시에도 새 연도 캐시를 먼저 보여주도록 보강',
+                ],
+            },
             {
                 version: '1.0.8',
                 date: '2026-05-12',
@@ -1896,8 +1905,22 @@
         }
 
         let currentNotesListenerPath = null;
-        let annualLeaveData = {};
-        let annualLeaveMeta = null;
+        const ANNUAL_LEAVE_META_KEY = 'calendar:annualLeaveMeta';
+        function annualLeaveStorageKey(y) { return `calendar:annualLeave:${y != null ? y : currentYear}`; }
+        function readAnnualLeaveCache(y) {
+            try {
+                const v = localStorage.getItem(annualLeaveStorageKey(y));
+                return v ? (JSON.parse(v) || {}) : {};
+            } catch (_) { return {}; }
+        }
+        function readAnnualLeaveMetaCache() {
+            try {
+                const v = localStorage.getItem(ANNUAL_LEAVE_META_KEY);
+                return v ? JSON.parse(v) : null;
+            } catch (_) { return null; }
+        }
+        let annualLeaveData = readAnnualLeaveCache();
+        let annualLeaveMeta = readAnnualLeaveMetaCache();
         let annualLeaveListenerYear = null;
         let annualLeaveMetaBound = false;
 
@@ -1929,17 +1952,23 @@
                     db.ref('/annual_leave/_meta').off();
                     annualLeaveMetaBound = false;
                 }
-                annualLeaveData = {};
-                annualLeaveMeta = null;
+                if (localStorage.getItem('loggedIn') !== 'true') {
+                    annualLeaveData = {};
+                    annualLeaveMeta = null;
+                    localStorage.removeItem(annualLeaveStorageKey());
+                    localStorage.removeItem(ANNUAL_LEAVE_META_KEY);
+                }
                 return;
             }
             if (annualLeaveListenerYear !== currentYear) {
                 if (annualLeaveListenerYear != null) {
                     db.ref(`/annual_leave/${annualLeaveListenerYear}`).off();
                 }
+                annualLeaveData = readAnnualLeaveCache(currentYear);
                 annualLeaveListenerYear = currentYear;
                 db.ref(`/annual_leave/${currentYear}`).on('value', function(snap) {
                     annualLeaveData = snap.val() || {};
+                    try { localStorage.setItem(annualLeaveStorageKey(currentYear), JSON.stringify(annualLeaveData)); } catch (_) {}
                     renderLeaveSummary();
                 });
             }
@@ -1947,6 +1976,10 @@
                 annualLeaveMetaBound = true;
                 db.ref('/annual_leave/_meta').on('value', function(snap) {
                     annualLeaveMeta = snap.val() || null;
+                    try {
+                        if (annualLeaveMeta) localStorage.setItem(ANNUAL_LEAVE_META_KEY, JSON.stringify(annualLeaveMeta));
+                        else localStorage.removeItem(ANNUAL_LEAVE_META_KEY);
+                    } catch (_) {}
                     renderLeaveSummary();
                 });
             }
@@ -2229,7 +2262,7 @@
         }
 
         function renderAnnualForUser(name, hasAnnualData) {
-            if (!currentUser) return '';
+            if (!currentUser && localStorage.getItem('loggedIn') !== 'true') return '';
             const info = annualLeaveData && annualLeaveData[name];
             if (!info) {
                 if (!hasAnnualData) return '';
@@ -2253,7 +2286,7 @@
         function renderAnnualSyncStatus() {
             const el = document.getElementById('leavePanelSync');
             if (!el) return;
-            if (!currentUser) { el.innerHTML = ''; el.className = 'leave-panel-sync'; return; }
+            if (!currentUser && localStorage.getItem('loggedIn') !== 'true') { el.innerHTML = ''; el.className = 'leave-panel-sync'; return; }
             if (!annualLeaveMeta || !annualLeaveMeta.lastSyncAt) {
                 el.className = 'leave-panel-sync empty';
                 el.textContent = '연차 데이터 미동기화 — npm run sync 실행 필요';

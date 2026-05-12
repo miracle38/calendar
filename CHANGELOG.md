@@ -11,6 +11,11 @@
 
 ## [Unreleased]
 
+## [1.0.9] - 2026-05-12
+
+### Fixed
+- 월간 연차 현황 패널 진입 시 연간 잔여/사용/총 수치가 **잠시 비었다가 나타나던 깜빡임** 문제 — Firebase 응답을 기다리지 않고 localStorage 캐시에서 즉시 표시 (`events`, 메모와 동일 패턴). `calendar:annualLeave:{year}`, `calendar:annualLeaveMeta` 키로 캐시. 로그아웃 시 캐시도 정리
+
 ## [1.0.8] - 2026-05-12
 
 ### Added
