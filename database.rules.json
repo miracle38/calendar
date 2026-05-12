@@ -14,6 +14,10 @@
       ".read": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')",
       ".write": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')"
     },
+    "annual_leave": {
+      ".read": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')",
+      ".write": false
+    },
     "baseball": {
       ".read": true,
       ".write": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')"

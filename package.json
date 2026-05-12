@@ -1,10 +1,12 @@
 {
   "name": "00.-claude",
-  "version": "1.0.3",
+  "version": "1.0.8",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "sync": "node scripts/sync-annual-leave.js",
+    "sync:debug": "cross-env HEADFUL=true node scripts/sync-annual-leave.js"
   },
   "repository": {
     "type": "git",
@@ -20,6 +22,9 @@
   "homepage": "https://github.com/miracle38/calendar#readme",
   "dependencies": {
     "@playwright/test": "^1.59.1",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "firebase-admin": "^12.7.0",
     "playwright": "^1.59.1"
   }
 }

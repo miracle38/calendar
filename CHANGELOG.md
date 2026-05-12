@@ -11,6 +11,14 @@
 
 ## [Unreleased]
 
+## [1.0.8] - 2026-05-12
+
+### Added
+- 월간 연차 현황 패널에 **연간 잔여 연차** 표시 — 각 팀원 옆에 잔여/사용/총 부여 일수를 한 줄 프로그레스 바로 시각화. 잔여 0일은 빨강, 잔여 20% 이하는 주황으로 강조
+- 패널 하단에 마지막 동기화 시각 표시 (`🔄 연차 동기화: 2시간 전 ...`). 7일 이상 경과 시 빨간색 경고
+- Node.js 스크래퍼 (`scripts/sync-annual-leave.js`) — Playwright 영구 프로필(SSO 대응)로 `jiran.groupware.pro` 접속 → 첫 실행 시 본인이 직접 SSO 로그인 → 쿠키 저장 → 이후 `annualsummary` API 호출 → Firebase Realtime DB `/annual_leave/{year}/{name}` 에 저장. 비밀번호 저장 없이 동작. 실행: `npm run sync` (첫 로그인/재로그인: `npm run sync:debug`)
+- Firebase 룰 `annual_leave` 경로 추가 — 로그인 사용자만 읽기, 쓰기는 Admin SDK(스크래퍼)에서만 가능
+
 ## [1.0.7] - 2026-05-06
 
 ### Fixed

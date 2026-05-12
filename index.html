@@ -1007,6 +1007,55 @@
         }
         .leave-panel-summary strong { color: #1e3c72; }
 
+        /* 연간 잔여 연차 (그룹웨어 동기화) */
+        .leave-user-annual {
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.76em;
+            color: #555;
+        }
+        .leave-user-annual.no-data { color: #bbb; font-style: italic; }
+        .annual-bar {
+            flex: 1;
+            height: 6px;
+            background: #eef2f7;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .annual-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2a5298, #1e3c72);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .annual-bar-fill.warn { background: linear-gradient(90deg, #ff9f43, #e17055); }
+        .annual-bar-fill.empty { background: #d63031; }
+        .annual-num {
+            font-weight: 700;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+            display: flex;
+            gap: 2px;
+            align-items: baseline;
+        }
+        .annual-num .remain { color: #1e3c72; font-size: 1.05em; }
+        .annual-num .remain.zero { color: #d63031; }
+        .annual-num .used { color: #999; }
+        .annual-num .total { color: #aaa; }
+        .annual-num .sep { color: #ccc; }
+        .leave-panel-sync {
+            margin-top: 8px;
+            text-align: center;
+            font-size: 0.72em;
+            color: #999;
+            font-weight: 600;
+        }
+        .leave-panel-sync.fresh { color: #27ae60; }
+        .leave-panel-sync.stale { color: #d63031; }
+        .leave-panel-sync.empty { color: #b08900; }
+
         @media (max-width: 768px) {
             .leave-panel { right: 12px; left: 12px; width: auto; top: auto; bottom: 90px; transform: none; max-height: 60vh; }
             .leave-fab { right: 16px; bottom: 16px; top: auto; transform: none; }
@@ -1123,7 +1172,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.7</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.0.8</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1132,6 +1181,7 @@
         <div class="leave-panel-title" id="leavePanelTitle">연차 현황</div>
         <div id="leavePanelBody"></div>
         <div class="leave-panel-summary" id="leavePanelSummary"></div>
+        <div class="leave-panel-sync" id="leavePanelSync"></div>
     </div>
 
     <!-- 모달 -->
@@ -1222,6 +1272,16 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.0.8',
+                date: '2026-05-12',
+                title: '연차 잔여 자동 동기화',
+                added: [
+                    '월간 연차 현황 패널에 그룹웨어 연동 — 각 팀원 옆에 잔여/사용/총 부여 일수를 프로그레스 바로 표시',
+                    '패널 하단에 마지막 동기화 시각 표시 (7일 이상 경과 시 빨간색 경고)',
+                    'Node.js 스크래퍼 (scripts/sync-annual-leave.js) — Playwright 영구 프로필(SSO 대응)로 그룹웨어 접속, annualsummary API 호출 후 Firebase 저장. 비밀번호 저장 없이 npm run sync 로 동작',
+                ],
+            },
             {
                 version: '1.0.7',
                 date: '2026-05-06',
@@ -1466,6 +1526,7 @@
                 currentUser = user;
                 updateAuthUI();
                 setupNotesListener();
+                setupAnnualLeaveListener();
                 renderCalendar();
                 if (selectedDay !== null) renderEventList();
                 refreshDayNoteBox();
@@ -1835,6 +1896,10 @@
         }
 
         let currentNotesListenerPath = null;
+        let annualLeaveData = {};
+        let annualLeaveMeta = null;
+        let annualLeaveListenerYear = null;
+        let annualLeaveMetaBound = false;
 
         function setupListener() {
             if (!db) return;
@@ -1850,6 +1915,41 @@
                 if (selectedDay !== null) renderEventList();
             });
             setupNotesListener();
+            setupAnnualLeaveListener();
+        }
+
+        function setupAnnualLeaveListener() {
+            if (!db) return;
+            if (!currentUser) {
+                if (annualLeaveListenerYear != null) {
+                    db.ref(`/annual_leave/${annualLeaveListenerYear}`).off();
+                    annualLeaveListenerYear = null;
+                }
+                if (annualLeaveMetaBound) {
+                    db.ref('/annual_leave/_meta').off();
+                    annualLeaveMetaBound = false;
+                }
+                annualLeaveData = {};
+                annualLeaveMeta = null;
+                return;
+            }
+            if (annualLeaveListenerYear !== currentYear) {
+                if (annualLeaveListenerYear != null) {
+                    db.ref(`/annual_leave/${annualLeaveListenerYear}`).off();
+                }
+                annualLeaveListenerYear = currentYear;
+                db.ref(`/annual_leave/${currentYear}`).on('value', function(snap) {
+                    annualLeaveData = snap.val() || {};
+                    renderLeaveSummary();
+                });
+            }
+            if (!annualLeaveMetaBound) {
+                annualLeaveMetaBound = true;
+                db.ref('/annual_leave/_meta').on('value', function(snap) {
+                    annualLeaveMeta = snap.val() || null;
+                    renderLeaveSummary();
+                });
+            }
         }
 
         function setupNotesListener() {
@@ -2096,6 +2196,7 @@
             let totalOfficial = 0;
             let usedCount = 0;
             const fmtTotal = n => (Number.isInteger(n) ? n : n.toFixed(1));
+            const hasAnnualData = annualLeaveData && Object.keys(annualLeaveData).length > 0;
             const html = names.map(name => {
                 const s = stats[name];
                 if (s.total > 0 || s.official > 0) usedCount++;
@@ -2107,6 +2208,7 @@
                     const suffix = d.type === 'am' ? ' 오전' : d.type === 'pm' ? ' 오후' : '';
                     return `<span class="leave-day-chip ${d.type}">${d.day}일${suffix}</span>`;
                 }).join('');
+                const annualHtml = renderAnnualForUser(name, hasAnnualData);
                 return `<div class="leave-user-row">
                     <div class="leave-user-head">
                         <span class="leave-user-name">${escHtml(name)}</span>
@@ -2115,6 +2217,7 @@
                             <span class="leave-user-total ${totalClass}">${fmtTotal(s.total)}일</span>
                         </span>
                     </div>
+                    ${annualHtml}
                     ${chipsHtml ? `<div class="leave-day-list">${chipsHtml}</div>` : ''}
                 </div>`;
             }).join('');
@@ -2122,6 +2225,55 @@
             document.getElementById('leavePanelBody').innerHTML = html || '<div style="text-align:center; color:#aaa; padding:20px 0;">데이터가 없습니다</div>';
             const officialSummary = totalOfficial > 0 ? `<span>공가 <strong>${totalOfficial}</strong>일</span>` : '';
             document.getElementById('leavePanelSummary').innerHTML = `<span>사용 인원 <strong>${usedCount}</strong>명</span><span>합계 <strong>${fmtTotal(totalDays)}</strong>일</span>${officialSummary}`;
+            renderAnnualSyncStatus();
+        }
+
+        function renderAnnualForUser(name, hasAnnualData) {
+            if (!currentUser) return '';
+            const info = annualLeaveData && annualLeaveData[name];
+            if (!info) {
+                if (!hasAnnualData) return '';
+                return `<div class="leave-user-annual no-data" title="그룹웨어에서 동기화된 데이터 없음">연간 데이터 없음</div>`;
+            }
+            const yearNum = Number(info.yearNum) || 0;
+            const used = Number(info.totalUsedNum) || 0;
+            const remain = Number(info.remainNum) || 0;
+            const pct = yearNum > 0 ? Math.min(100, Math.max(0, Math.round((used / yearNum) * 100))) : 0;
+            const fmt = n => (Number.isInteger(n) ? n : n.toFixed(1));
+            const fillCls = remain === 0 ? 'empty' : (yearNum > 0 && remain <= yearNum * 0.2 ? 'warn' : '');
+            const remainCls = remain === 0 ? 'zero' : '';
+            return `<div class="leave-user-annual" title="그룹웨어 기준 연간 잔여/사용/총 부여">
+                <div class="annual-bar"><div class="annual-bar-fill ${fillCls}" style="width:${pct}%"></div></div>
+                <div class="annual-num">
+                    <span class="remain ${remainCls}">${fmt(remain)}</span><span class="sep">/</span><span class="used">${fmt(used)}</span><span class="sep">/</span><span class="total">${fmt(yearNum)}</span>
+                </div>
+            </div>`;
+        }
+
+        function renderAnnualSyncStatus() {
+            const el = document.getElementById('leavePanelSync');
+            if (!el) return;
+            if (!currentUser) { el.innerHTML = ''; el.className = 'leave-panel-sync'; return; }
+            if (!annualLeaveMeta || !annualLeaveMeta.lastSyncAt) {
+                el.className = 'leave-panel-sync empty';
+                el.textContent = '연차 데이터 미동기화 — npm run sync 실행 필요';
+                return;
+            }
+            const ts = Number(annualLeaveMeta.lastSyncAt);
+            const ageMs = Date.now() - ts;
+            const ageDays = Math.floor(ageMs / 86400000);
+            const ageHours = Math.floor(ageMs / 3600000);
+            const ageMin = Math.floor(ageMs / 60000);
+            let ago;
+            if (ageMs < 60000) ago = '방금 전';
+            else if (ageMin < 60) ago = ageMin + '분 전';
+            else if (ageHours < 24) ago = ageHours + '시간 전';
+            else ago = ageDays + '일 전';
+            const d = new Date(ts);
+            const stamp = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            const cls = ageDays >= 7 ? 'stale' : 'fresh';
+            el.className = 'leave-panel-sync ' + cls;
+            el.textContent = `🔄 연차 동기화: ${ago} (${stamp})`;
         }
 
         function renderColorPicker() {

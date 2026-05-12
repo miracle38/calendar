@@ -7,3 +7,7 @@ scripts/
 jiransoft_CI_jpg/
 jpg/
 png/
+# 보안 (scripts/ 가 이미 무시되지만, 추적되더라도 보호)
+.env
+serviceAccountKey.json
+userdata/
