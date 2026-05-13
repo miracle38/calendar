@@ -9,7 +9,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            font-family: 'Malgun Gothic', '맑은 고딕', 'Apple SD Gothic Neo', sans-serif;
             background: #f0f2f5;
             min-height: 100vh;
             padding: 24px;
@@ -983,6 +983,142 @@
         .leave-fab:hover { transform: translateY(-50%) scale(1.08); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
         .leave-fab.active { background: linear-gradient(135deg, #d63031, #ff6b6b); }
 
+        /* 월별 제품 통계 플로팅 */
+        .stats-fab {
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            transform: translateY(calc(-50% - 70px));
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #15803d, #16a34a);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+            cursor: pointer;
+            font-size: 1.35em;
+            z-index: 90;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .stats-fab:hover { transform: translateY(calc(-50% - 70px)) scale(1.08); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+        .stats-fab.active { background: linear-gradient(135deg, #ea580c, #f97316); }
+
+        .stats-panel {
+            position: fixed;
+            right: 92px;
+            top: 50%;
+            transform: translateY(calc(-50% - 70px));
+            width: 520px;
+            max-height: 78vh;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            padding: 18px 20px 14px;
+            z-index: 89;
+            display: none;
+            overflow-y: auto;
+            font-family: inherit;
+        }
+        .stats-panel.active { display: block; }
+        .stats-panel-title {
+            font-size: 1em;
+            color: #1e3c72;
+            font-weight: 800;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8f0fe;
+        }
+        .stats-company { margin-bottom: 16px; }
+        .stats-company:last-child { margin-bottom: 0; }
+        .stats-company-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .stats-company-name {
+            font-weight: 700;
+            font-size: 0.92em;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stats-company-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        .stats-company-count {
+            font-weight: 800;
+            color: #1e3c72;
+            font-size: 0.95em;
+        }
+        .stats-product-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 5px 0;
+            font-size: 0.78em;
+        }
+        .stats-product-name {
+            flex: 1 1 auto;
+            min-width: 0;
+            color: #555;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .stats-product-bar-wrap {
+            flex: 0 0 160px;
+            height: 16px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .stats-product-bar {
+            display: block;
+            height: 100%;
+            border-radius: 8px;
+            min-width: 4px;
+            box-shadow: inset 0 -1px 2px rgba(0,0,0,0.12);
+        }
+        .stats-product-count {
+            flex: 0 0 36px;
+            text-align: right;
+            font-weight: 800;
+            color: #1e3c72;
+            font-variant-numeric: tabular-nums;
+            font-size: 0.95em;
+        }
+        .stats-panel-summary {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 2px solid #e8f0fe;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85em;
+            color: #666;
+            font-weight: 600;
+        }
+        .stats-panel-summary strong { color: #1e3c72; }
+
+        @media (max-width: 768px) {
+            .stats-panel { right: 12px; left: 12px; width: auto; top: auto; bottom: 160px; transform: none; max-height: 55vh; }
+            .stats-fab { right: 16px; bottom: 84px; top: auto; transform: none; }
+            .stats-fab:hover { transform: scale(1.08); }
+            .stats-product-bar-wrap { flex: 0 0 100px; }
+        }
+        @media print {
+            .stats-fab, .stats-panel { display: none !important; }
+        }
+
         .leave-panel {
             position: fixed;
             right: 92px;
@@ -1220,7 +1356,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.2.2</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.3.0</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1230,6 +1366,14 @@
         <div id="leavePanelBody"></div>
         <div class="leave-panel-summary" id="leavePanelSummary"></div>
         <div class="leave-panel-sync" id="leavePanelSync"></div>
+    </div>
+
+    <!-- 월별 제품 통계 플로팅 (로그인 전용) -->
+    <button class="stats-fab auth-only" id="statsFab" onclick="toggleStatsPanel()" title="월별 제품 통계">📈</button>
+    <div class="stats-panel" id="statsPanel">
+        <div class="stats-panel-title" id="statsPanelTitle">월별 통계</div>
+        <div id="statsPanelBody"></div>
+        <div class="stats-panel-summary" id="statsPanelSummary"></div>
     </div>
 
     <!-- 모달 -->
@@ -1321,6 +1465,20 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.3.0',
+                date: '2026-05-13',
+                title: '월별 제품 통계 패널 (로그인 전용)',
+                added: [
+                    '우측 📈 버튼을 추가하여 월별 제품 통계 패널 제공 — 로그인 사용자에게만 노출. 회사(색상)별로 묶고 그 안에서 제품별 건수를 막대그래프로 시각화',
+                    '제품 그룹 키는 일정 텍스트 첫 줄 전체. 단 "재확인1차/2차/3차" 같은 카운터는 통합되어 "재확인" 하나로 묶임 — 예: "오피스챗 (기능추가 25) 2차+재확인1차" 와 "오피스챗 (기능추가 25) 2차+재확인2차" 가 같은 그룹',
+                    '제품 이름에 마우스 오버 시 같은 그룹에 속한 일정들의 2번째 줄 이후 내용을 툴팁으로 표시 (중복 제거)',
+                    '패널 하단에 총 일정 건수 + 제품 종수 요약 표시. 🔒 예정(planned) 일정은 통계에서 항상 제외 (확정된 작업만 집계). 로그아웃 시 패널이 열려 있으면 자동 닫힘',
+                ],
+                changed: [
+                    '캘린더 기본 폰트를 맑은 고딕(Malgun Gothic) 우선으로 변경 — Windows 환경에서 일관된 한글 폰트 렌더',
+                ],
+            },
             {
                 version: '1.2.2',
                 date: '2026-05-13',
@@ -1695,6 +1853,13 @@
                 localStorage.removeItem('loggedInLabel');
                 const memoOv = document.getElementById('memoOverlay');
                 if (memoOv && memoOv.classList.contains('active')) closeMemo();
+                // 로그아웃 시 통계 패널 열려 있으면 닫기
+                const statsPanel = document.getElementById('statsPanel');
+                const statsFab = document.getElementById('statsFab');
+                if (statsPanel && statsPanel.classList.contains('active')) {
+                    statsPanel.classList.remove('active');
+                    if (statsFab) statsFab.classList.remove('active');
+                }
             }
         }
 
@@ -2281,6 +2446,9 @@
             }
 
             renderLeaveSummary();
+            // 통계 패널 열려있으면 갱신
+            const sp = document.getElementById('statsPanel');
+            if (sp && sp.classList.contains('active')) renderStatsSummary();
         }
 
         function toggleLeavePanel() {
@@ -2289,6 +2457,113 @@
             const nowActive = !panel.classList.contains('active');
             panel.classList.toggle('active', nowActive);
             fab.classList.toggle('active', nowActive);
+        }
+
+        function toggleStatsPanel() {
+            const panel = document.getElementById('statsPanel');
+            const fab = document.getElementById('statsFab');
+            const nowActive = !panel.classList.contains('active');
+            panel.classList.toggle('active', nowActive);
+            fab.classList.toggle('active', nowActive);
+            if (nowActive) renderStatsSummary();
+        }
+
+        // 일정 텍스트에서 제품 그룹 키 추출 — 첫 줄 전체를 사용. "재확인N차" 의 N차 카운터만 통합.
+        // 예: "AIFILTER 2.5 회귀" → "AIFILTER 2.5 회귀"
+        //     "오피스챗 (기능추가 25) 2차+재확인1차" → "오피스챗 (기능추가 25) 2차+재확인"
+        //     "오피스챗 (기능추가 25) 2차+재확인2차" → "오피스챗 (기능추가 25) 2차+재확인" (위와 동일 그룹)
+        function extractProductName(text) {
+            if (!text) return '(미분류)';
+            let firstLine = String(text).split('\n')[0].trim();
+            if (!firstLine) return '(미분류)';
+            // "재확인 1차", "재확인2차" 등의 카운터를 통합 → "재확인"
+            firstLine = firstLine.replace(/재확인\s*\d+\s*차/g, '재확인');
+            // 다중 공백 정규화
+            firstLine = firstLine.replace(/\s+/g, ' ').trim();
+            return firstLine;
+        }
+
+        function renderStatsSummary() {
+            const COMPANY_COLOR_HEX = ['#1d4ed8', '#15803d', '#8b4513', '#be185d']; // 점(dot) — 캘린더 일정 태그와 같은 진한 색
+            const COMPANY_BAR_HEX   = ['#60a5fa', '#4ade80', '#c89669', '#f472b6']; // 막대 — 한 단계 밝은 톤
+            // 회사(color index) → { 제품명: { count, lines: Set<string> } }
+            // lines: 같은 제품 키를 가진 일정들의 2번째 줄 이후 내용 (중복 제거)
+            const byCompany = {};
+            let total = 0;
+            Object.keys(events).forEach(d => {
+                const arr = events[d];
+                if (!Array.isArray(arr)) return;
+                arr.forEach(ev => {
+                    if (typeof ev !== 'object' || ev.leave) return;
+                    if (ev.planned) return; // 🔒 예정 일정은 통계에서 항상 제외
+                    const ci = ev.color || 0;
+                    const product = extractProductName(ev.text);
+                    if (!byCompany[ci]) byCompany[ci] = {};
+                    if (!byCompany[ci][product]) byCompany[ci][product] = { count: 0, lines: new Set() };
+                    const meta = byCompany[ci][product];
+                    meta.count++;
+                    const detailLines = String(ev.text || '').split('\n').slice(1).map(l => l.trim()).filter(l => l);
+                    if (detailLines.length) meta.lines.add(detailLines.join('\n'));
+                    total++;
+                });
+            });
+
+            const titleEl = document.getElementById('statsPanelTitle');
+            if (titleEl) titleEl.textContent = `${currentYear}년 ${currentMonth}월 제품별 통계`;
+
+            const bodyEl = document.getElementById('statsPanelBody');
+            const sumEl = document.getElementById('statsPanelSummary');
+            if (!bodyEl || !sumEl) return;
+
+            if (total === 0) {
+                bodyEl.innerHTML = '<div style="text-align:center; color:#aaa; padding:20px 0;">등록된 일정이 없습니다</div>';
+                sumEl.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            for (let ci = 0; ci < 4; ci++) {
+                const companyProducts = byCompany[ci];
+                if (!companyProducts) continue;
+                const companyName = COLOR_NAMES[ci] || '회사' + ci;
+                const dotColor = COMPANY_COLOR_HEX[ci] || '#666';
+                const barColor = COMPANY_BAR_HEX[ci] || '#999';
+                const companyTotal = Object.values(companyProducts).reduce((a, b) => a + b.count, 0);
+                const products = Object.entries(companyProducts).sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]));
+                const maxCount = Math.max.apply(null, products.map(p => p[1].count));
+
+                html += '<div class="stats-company">';
+                html += '<div class="stats-company-head">';
+                html += '<span class="stats-company-name"><span class="stats-company-dot" style="background:' + dotColor + '"></span>' + escHtml(companyName) + '</span>';
+                html += '<span class="stats-company-count">' + companyTotal + '건</span>';
+                html += '</div>';
+                products.forEach(function(pair) {
+                    const product = pair[0];
+                    const meta = pair[1];
+                    const count = meta.count;
+                    const pct = maxCount > 0 ? Math.max(6, (count / maxCount) * 100) : 0;
+                    // tooltip: 제품명 + (있으면) 2번째 줄 이후 내용 (여러 일정의 detail 은 중복 제거되어 모음, 빈 줄 없음)
+                    const linesArr = Array.from(meta.lines);
+                    let tooltipText = product;
+                    if (linesArr.length) {
+                        tooltipText += '\n' + linesArr.map(l => '• ' + l).join('\n');
+                    }
+                    const titleAttr = escHtml(tooltipText).replace(/\n/g, '&#10;');
+                    html += '<div class="stats-product-row">';
+                    html += '<span class="stats-product-name" title="' + titleAttr + '">' + escHtml(product) + '</span>';
+                    html += '<span class="stats-product-bar-wrap"><span class="stats-product-bar" style="width:' + pct + '%; background:' + barColor + '"></span></span>';
+                    html += '<span class="stats-product-count">' + count + '</span>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+            bodyEl.innerHTML = html;
+
+            const uniqueProducts = new Set();
+            Object.values(byCompany).forEach(function(cp) {
+                Object.keys(cp).forEach(function(p) { uniqueProducts.add(p); });
+            });
+            sumEl.innerHTML = '<span>총 일정 <strong>' + total + '</strong>건</span><span>제품 <strong>' + uniqueProducts.size + '</strong>종</span>';
         }
 
         function renderLeaveSummary() {
