@@ -449,9 +449,12 @@
             border-radius: 16px;
             width: 94%;
             max-width: 720px;
+            max-height: 92vh;
             box-shadow: 0 20px 60px rgba(0,0,0,0.25);
             overflow: hidden;
             animation: modalIn 0.2s ease;
+            display: flex;
+            flex-direction: column;
         }
 
         @keyframes modalIn {
@@ -463,6 +466,7 @@
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: #fff; padding: 18px 22px;
             display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0;
         }
 
         .modal-header h2 { font-size: 1.15em; }
@@ -473,7 +477,12 @@
         }
 
         .modal-close:hover { opacity: 1; }
-        .modal-body { padding: 18px 22px; }
+        .modal-body {
+            padding: 18px 22px;
+            overflow-y: auto;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
 
         .event-form { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; margin-bottom: 14px; }
 
@@ -1211,7 +1220,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.2.1</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.2.2</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1312,6 +1321,19 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.2.2',
+                date: '2026-05-13',
+                title: '"재확인" 무시 매칭 + 월 경계 URL 전파 + 모달 스크롤 보정',
+                changed: [
+                    'URL 자동 전파 시 "재확인" 마커를 무시 — "회의 X"와 "회의 X 재확인", "회의 X (재확인)", "회의 X - 재확인", "회의 X+재확인1차", "회의 X 2차+재확인1차" 등은 모두 동일한 일정으로 취급되어 URL이 함께 동기화됨',
+                    'URL 자동 전파가 다른 월의 일정에도 적용 — 한 달에서 URL 등록/수정/삭제하면 모든 월의 같은 base 일정에 일괄 반영됨',
+                    '새 일정 추가 시 같은 base 의 기존 일정에 URL 이 있으면 자동 상속 — 현재 월에 없으면 다른 월에서도 비동기 검색 후 적용',
+                ],
+                fixed: [
+                    '일정이 많은 날짜의 모달을 열 때 헤더(우측 상단 [전체 삭제]/[×] 버튼)가 화면 위쪽으로 밀려 안 보이던 문제 — 모달 max-height 를 92vh 로 제한하고 본문 영역만 내부 스크롤되게 변경',
+                ],
+            },
             {
                 version: '1.2.1',
                 date: '2026-05-12',
@@ -2575,21 +2597,138 @@
             renderCalendar();
         }
 
-        // 같은 텍스트의 일정들에 같은 URL 적용 (set 또는 clear). exceptKey 는 "day:idx" 형태로 자신 제외.
-        // 일정 텍스트가 같으면 URL 도 같아야 한다는 불변식을 유지하기 위함.
+        // URL 매칭용 base 텍스트 — "재확인" 마커(+ 선택적인 N차 카운터, 괄호/대시/플러스 등 주변 구분자 포함)를 제거해 같은 일정으로 취급.
+        // 매칭되는 변형 예:
+        //   "회의 X", "회의 X 재확인", "회의 X (재확인)", "회의 X - 재확인",
+        //   "회의 X 2차+재확인1차", "회의 X+재확인", "회의 X (재확인1차)" → 모두 base "회의 X"
+        function baseEventText(text) {
+            if (!text) return '';
+            let s = String(text);
+            // (재확인), (재확인1차), 「재확인」 등 괄호로 묶인 마커
+            s = s.replace(/[\(\[\{（［｛「【]\s*재확인\s*\d*\s*차?\s*[\)\]\}）］｝」】]/g, ' ');
+            // 그 외 위치: 앞에 +/-/:/등 구분자 선택, "재확인", 뒤에 N차 선택. 예: "+재확인1차", "- 재확인", "재확인 2차"
+            s = s.replace(/\s*[+\-–—:·,]?\s*재확인\s*\d*\s*차?/g, ' ');
+            // 공백 정리 + 양끝 구분자 제거
+            s = s.replace(/\s+/g, ' ').trim();
+            s = s.replace(/[\s\-–—:·,+]+$/, '').replace(/^[\s\-–—:·,+]+/, '');
+            return s;
+        }
+
+        // 같은 base 텍스트의 일정들에 같은 URL 적용 (set 또는 clear). exceptKey 는 "day:idx" 로 자신 제외.
+        // 1단계: 현재 월 (in-memory) 즉시 적용
+        // 2단계: 다른 모든 월 (Firebase) 비동기 일괄 업데이트
+        // "동일한 일정(=재확인 무시한 base 가 같은) ⇒ 동일한 URL" 불변식을 캘린더 전체에 유지.
         function propagateUrlForSameText(text, url, exceptKey) {
-            if (!text) return;
+            const base = baseEventText(text);
+            if (!base) return Promise.resolve();
+            // 1단계: 현재 월 (events 변수)
             Object.keys(events).forEach(d => {
                 const arr = events[d];
                 if (!Array.isArray(arr)) return;
                 arr.forEach((ev, i) => {
                     if (typeof ev !== 'object' || ev.leave) return;
                     if ((d + ':' + i) === exceptKey) return;
-                    if (ev.text !== text) return;
+                    if (baseEventText(ev.text) !== base) return;
                     if (url) ev.url = url;
                     else delete ev.url;
                 });
             });
+            // 2단계: 다른 월들 (Firebase)
+            return propagateUrlAcrossOtherMonths(base, url);
+        }
+
+        async function propagateUrlAcrossOtherMonths(base, url) {
+            if (!db || !currentUser) return;
+            try {
+                const currentMonthKey = `${currentYear}_${String(currentMonth).padStart(2,'0')}`;
+                const snapshot = await db.ref('calendar').once('value');
+                const allMonths = snapshot.val() || {};
+                const updates = {};
+                Object.keys(allMonths).forEach(monthKey => {
+                    if (monthKey === currentMonthKey) return;
+                    if (!/^\d{4}_\d{2}$/.test(monthKey)) return; // 다른 형식 키 (예: 2000_00) 제외
+                    const raw = allMonths[monthKey];
+                    let monthEvents;
+                    try {
+                        if (typeof raw === 'string') monthEvents = raw ? JSON.parse(raw) : null;
+                        else if (raw && typeof raw === 'object') monthEvents = raw;
+                    } catch (_) { return; }
+                    if (!monthEvents || typeof monthEvents !== 'object') return;
+                    let changed = false;
+                    Object.keys(monthEvents).forEach(day => {
+                        const arr = monthEvents[day];
+                        if (!Array.isArray(arr)) return;
+                        arr.forEach(ev => {
+                            if (typeof ev !== 'object' || ev.leave) return;
+                            if (baseEventText(ev.text) !== base) return;
+                            const before = ev.url;
+                            if (url) ev.url = url;
+                            else delete ev.url;
+                            if (ev.url !== before) changed = true;
+                        });
+                    });
+                    if (changed) updates['calendar/' + monthKey] = JSON.stringify(monthEvents);
+                });
+                const updatedMonths = Object.keys(updates).length;
+                if (updatedMonths > 0) {
+                    await db.ref().update(updates);
+                    console.log(`[URL 전파] 다른 ${updatedMonths}개 월 업데이트 완료 (base="${base}")`);
+                }
+            } catch (e) {
+                console.warn('[URL 전파] 다른 월 업데이트 실패:', e);
+            }
+        }
+
+        // 새 일정 추가 시 같은 base 텍스트의 기존 일정에 URL 이 있으면 그 값을 반환 (없으면 null).
+        // 현재 월 (events) 안에서만 동기 탐색. 다른 월에 있을 경우는 addEvent 의 비동기 후처리가 처리.
+        function findUrlForSameBase(text) {
+            const base = baseEventText(text);
+            if (!base) return null;
+            for (const d of Object.keys(events)) {
+                const arr = events[d];
+                if (!Array.isArray(arr)) continue;
+                for (const ev of arr) {
+                    if (typeof ev !== 'object' || ev.leave) continue;
+                    if (!ev.url) continue;
+                    if (baseEventText(ev.text) === base) return ev.url;
+                }
+            }
+            return null;
+        }
+
+        // 같은 base 텍스트의 일정이 다른 월에 존재하고 URL 이 있으면 그 값을 반환 (비동기 Firebase 탐색).
+        async function findUrlForSameBaseInOtherMonths(text) {
+            if (!db || !currentUser) return null;
+            const base = baseEventText(text);
+            if (!base) return null;
+            try {
+                const currentMonthKey = `${currentYear}_${String(currentMonth).padStart(2,'0')}`;
+                const snapshot = await db.ref('calendar').once('value');
+                const allMonths = snapshot.val() || {};
+                for (const monthKey of Object.keys(allMonths)) {
+                    if (monthKey === currentMonthKey) continue;
+                    if (!/^\d{4}_\d{2}$/.test(monthKey)) continue;
+                    const raw = allMonths[monthKey];
+                    let monthEvents;
+                    try {
+                        if (typeof raw === 'string') monthEvents = raw ? JSON.parse(raw) : null;
+                        else if (raw && typeof raw === 'object') monthEvents = raw;
+                    } catch (_) { continue; }
+                    if (!monthEvents || typeof monthEvents !== 'object') continue;
+                    for (const day of Object.keys(monthEvents)) {
+                        const arr = monthEvents[day];
+                        if (!Array.isArray(arr)) continue;
+                        for (const ev of arr) {
+                            if (typeof ev !== 'object' || ev.leave) continue;
+                            if (!ev.url) continue;
+                            if (baseEventText(ev.text) === base) return ev.url;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('[URL 상속 검색] 실패:', e);
+            }
+            return null;
         }
 
         // URL 정규화: 빈 값/공백은 null. http(s):// 없으면 https:// 자동 부여.
@@ -2616,15 +2755,35 @@
             const progNum = document.getElementById('eventProgressNum');
             const progress = progRange ? parseInt(progRange.value, 10) || 0 : 0;
             const urlInput = document.getElementById('eventUrl');
-            const url = normalizeEventUrl(urlInput && urlInput.value);
+            let url = normalizeEventUrl(urlInput && urlInput.value);
+            if (!url) {
+                // URL 미입력 시 현재 월의 같은 base 일정에 URL 이 있으면 자동 상속
+                url = findUrlForSameBase(text);
+            }
             const newEv = { text, color: selectedColor };
             if (planned) newEv.planned = true;
             if (progress > 0) newEv.progress = progress;
             if (url) newEv.url = url;
             events[selectedDay].push(newEv);
             const newIdx = events[selectedDay].length - 1;
-            if (url) propagateUrlForSameText(text, url, selectedDay + ':' + newIdx);
+            const dayForSave = selectedDay;
+            if (url) propagateUrlForSameText(text, url, dayForSave + ':' + newIdx);
             saveEvents();
+            // URL 미입력이고 현재 월에도 없으면 다른 월에서 비동기 검색 → 발견 시 상속 적용
+            if (!url) {
+                findUrlForSameBaseInOtherMonths(text).then(foundUrl => {
+                    if (!foundUrl) return;
+                    // 새 일정이 아직 같은 자리에 있는지 검증 (편집/삭제 가능성)
+                    const stillThere = events[dayForSave] && events[dayForSave][newIdx];
+                    if (stillThere && stillThere.text === text && !stillThere.url) {
+                        stillThere.url = foundUrl;
+                        propagateUrlForSameText(text, foundUrl, dayForSave + ':' + newIdx);
+                        saveEvents();
+                        renderCalendar();
+                        if (selectedDay !== null) renderEventList();
+                    }
+                });
+            }
             input.value = '';
             input.focus();
             if (progRange) progRange.value = 0;
