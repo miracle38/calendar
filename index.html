@@ -372,7 +372,7 @@
         }
 
         /* 일정 색상 */
-        .event-colors { --c1: #1d4ed8; --c2: #15803d; --c3: #8b4513; --c4: #be185d; }
+        .event-colors { --c1: #1d4ed8; --c2: #15803d; --c3: #8b4513; --c4: #be185d; --c5: #eab308; }
 
         .day .event-tag {
             display: flex;
@@ -430,6 +430,17 @@
         .day .event-tag.c1 { background: var(--c2); }
         .day .event-tag.c2 { background: var(--c3); }
         .day .event-tag.c3 { background: var(--c4); }
+        /* 배포일 (c4) — 점선 외곽선 + 🚀 이모지 prefix 로 강조 */
+        .day .event-tag.c4 {
+            background: var(--c5);
+            color: #1f2937;
+            outline: 2px dashed #92400e;
+            outline-offset: -2px;
+            box-shadow: 0 2px 6px rgba(180, 83, 9, 0.25);
+        }
+        .day .event-tag.c4 .tag-text::before { content: "🚀 "; }
+        /* planned + 배포일 조합 — 두 prefix 모두 표시 */
+        .day .event-tag.planned.c4 .tag-text::before { content: "🔒🚀 "; }
 
         .day .event-more-tag {
             font-size: 0.7em;
@@ -519,6 +530,7 @@
         .color-dot.cd1 { background: var(--c2); }
         .color-dot.cd2 { background: var(--c3); }
         .color-dot.cd3 { background: var(--c4); }
+        .color-dot.cd4 { background: var(--c5); color: #1f2937; }
 
         .event-form .btn-add {
             padding: 10px 28px;
@@ -559,6 +571,7 @@
         .day .event-tag.planned.c1 { --tag-bg: #15803d; }
         .day .event-tag.planned.c2 { --tag-bg: #8b4513; }
         .day .event-tag.planned.c3 { --tag-bg: #be185d; }
+        .day .event-tag.planned.c4 { --tag-bg: #eab308; }
         .day .event-tag.planned:hover { opacity: 0.85; }
         .day .event-tag.planned .tag-text::before { content: "🔒 "; }
 
@@ -612,6 +625,7 @@
         .event-list li .li-color.c1 { background: var(--c2); }
         .event-list li .li-color.c2 { background: var(--c3); }
         .event-list li .li-color.c3 { background: var(--c4); }
+        .event-list li .li-color.c4 { background: var(--c5); }
 
         .event-list li span { flex: 1; font-size: 0.9em; white-space: pre-line; line-height: 1.3; }
         .event-list li span.editable { cursor: pointer; }
@@ -713,7 +727,6 @@
 
         .status-label.done { background: #dbeafe; color: #2563eb; }
         .status-label.final { background: #dcfce7; color: #16a34a; }
-        .status-label.release { background: #fef9c3; color: #a16207; }
 
         .status-btns { display: flex; gap: 4px; flex-shrink: 0; }
 
@@ -727,7 +740,6 @@
         .status-btn:hover { background: #e8e8e8; }
         .status-btn.active-done { background: #dbeafe; color: #2563eb; border-color: #2563eb; }
         .status-btn.active-final { background: #dcfce7; color: #16a34a; border-color: #16a34a; }
-        .status-btn.active-release { background: #fef9c3; color: #a16207; border-color: #ca8a04; }
 
         .day .event-tag .tag-status {
             font-size: 0.8em; padding: 1px 4px;
@@ -737,7 +749,6 @@
 
         .tag-status.done { background: #fbbf24; color: #333; }
         .tag-status.final { background: #f43f5e; color: #fff; }
-        .tag-status.release { background: #facc15; color: #333; }
 
         /* 진행률 게이지 */
         .day .event-tag { position: relative; padding-bottom: 10px; }
@@ -1367,7 +1378,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.10.0</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.11.0</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1477,14 +1488,28 @@
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
             {
-                version: '1.10.0',
+                version: '1.11.0',
                 date: '2026-05-20',
-                title: '제품 상태에 [배포일] 추가 + 정렬 4단계 확장',
+                title: '회사 카테고리에 [배포일] 추가',
                 added: [
-                    '일정 상태 옵션에 [배포일] 추가 — 기존 [완료] / [최종] 옆에 노란색(#facc15) 뱃지로 표시. 캘린더 타일/모달 리스트/일정표 복사/사내 게시판용 복사/JSON 가져오기까지 일관 적용',
+                    '색상 5번째(index 4)에 [배포일] 카테고리 추가 — 기존 [지란지교소프트][지란지교데이터][DirectCloud][기타] 옆에 노란색(#eab308) 박스. 색상 픽커 / 통계 패널 / 일정표 복사 / 사내 게시판용 / 이미지로 복사 모두 일관 적용',
+                    '노란색 배경에 흰 글자가 안 보이던 문제 — 색상 4 일정만 글자색을 진한 회색(#1f2937)으로 자동 전환',
+                    '배포일(color=4) 일정은 비로그인 사용자에게 숨김 — 🔒 예정 일정과 동일 정책. viewer/admin 로그인 시에만 표시',
+                    '배포일 일정에만 점선 외곽선(2px dashed #92400e) + 🚀 이모지 prefix + drop shadow 로 시각적 차별화. planned + 배포일 조합은 🔒🚀 둘 다 표시',
                 ],
                 changed: [
-                    '일정 정렬 규칙을 4단계로 확장: ① planned (일반 위, 예정 아래) → ② 회사 색상 → ③ 배포일은 같은 회사 그룹 내 마지막 → ④ 텍스트 가나다/알파벳',
+                    'v1.10.0 의 [배포일] "상태(status)" 는 회사 카테고리로 재설계되어 제거됨. status 는 다시 [완료]/[최종] 두 가지로',
+                ],
+            },
+            {
+                version: '1.10.0',
+                date: '2026-05-20',
+                title: '제품 상태에 [배포일] 추가 + 정렬 4단계 확장 (v1.11.0 에서 회사 카테고리로 재설계됨)',
+                added: [
+                    '일정 상태 옵션에 [배포일] 추가 — 노란색 뱃지. (v1.11.0 에서 회사 카테고리로 재설계되어 제거됨)',
+                ],
+                changed: [
+                    '일정 정렬 4단계 확장: planned/회사/배포일 상태/텍스트 (이후 v1.11.0 에서 3단계로 단순화: planned/회사/텍스트)',
                 ],
             },
             {
@@ -1822,7 +1847,7 @@
         let selectedDay = null;
         let selectedColor = 0;
         let selectedLeave = null;
-        const COLOR_NAMES = ['지란지교소프트', '지란지교데이터', 'DirectCloud', '기타'];
+        const COLOR_NAMES = ['지란지교소프트', '지란지교데이터', 'DirectCloud', '기타', '배포일'];
         const LEAVE_LABELS = { vacation: '휴가', am: '오전반차', pm: '오후반차', official: '공가' };
         const TEAM_MEMBERS = ['김해성', '원교현', '신주영', '김창희', '최선빈', '권서연'];
         const MAX_VISIBLE = 6;
@@ -2416,11 +2441,7 @@
             const ca = (typeof a === 'object' && a !== null && a.color != null) ? a.color : 0;
             const cb = (typeof b === 'object' && b !== null && b.color != null) ? b.color : 0;
             if (ca !== cb) return ca - cb;
-            // 3차: 배포일은 같은 회사 그룹 안에서 마지막
-            const ra = (typeof a === 'object' && a !== null && a.status === 'release') ? 1 : 0;
-            const rb = (typeof b === 'object' && b !== null && b.status === 'release') ? 1 : 0;
-            if (ra !== rb) return ra - rb;
-            // 4차: 텍스트 가나다/알파벳
+            // 3차: 텍스트 가나다/알파벳
             const ta = (typeof a === 'object' && a !== null) ? (a.text || '') : (a || '');
             const tb = (typeof b === 'object' && b !== null) ? (b.text || '') : (b || '');
             return String(ta).localeCompare(String(tb), 'ko', { sensitivity: 'base', numeric: true });
@@ -2541,6 +2562,8 @@
                 const normal = dayEv.filter(ev => {
                     if (typeof ev === 'object' && ev.leave) return false;
                     if (!isAuthView && typeof ev === 'object' && ev.planned) return false;
+                    // 배포일(color=4) 일정은 비로그인 사용자에게 숨김
+                    if (!isAuthView && typeof ev === 'object' && ev.color === 4) return false;
                     return true;
                 }).sort(compareEvForSort);
 
@@ -2566,7 +2589,6 @@
                     let stHtml = '';
                     if (st === 'done') stHtml = '<span class="tag-status done">완료</span>';
                     else if (st === 'final') stHtml = '<span class="tag-status final">최종</span>';
-                    else if (st === 'release') stHtml = '<span class="tag-status release">배포일</span>';
                     const evIdx = dayEv.indexOf(ev);
                     const canDrag = isAdminUser() ? 'draggable="true"' : '';
                     const plannedCls = isPlanned ? ' planned' : '';
@@ -2576,7 +2598,7 @@
                     const hasUrl = isAuthView && typeof ev === 'object' && typeof ev.url === 'string' && ev.url;
                     const urlCls = hasUrl ? ' has-url' : '';
                     const urlBtnHtml = hasUrl ? `<a class="tag-url-btn" href="${escHtml(ev.url)}" target="_blank" rel="noopener noreferrer" title="새 탭으로 열기: ${escHtml(ev.url)}" onclick="event.stopPropagation()" draggable="false">🔗</a>` : '';
-                    evHtml += `<div class="event-tag c${ci % 4}${plannedCls}${urlCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${progressHtml}${urlBtnHtml}</div>`;
+                    evHtml += `<div class="event-tag c${ci % 5}${plannedCls}${urlCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${progressHtml}${urlBtnHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
@@ -2630,8 +2652,8 @@
         }
 
         function renderStatsSummary() {
-            const COMPANY_COLOR_HEX = ['#1d4ed8', '#15803d', '#8b4513', '#be185d']; // 점(dot) — 캘린더 일정 태그와 같은 진한 색
-            const COMPANY_BAR_HEX   = ['#60a5fa', '#4ade80', '#c89669', '#f472b6']; // 막대 — 한 단계 밝은 톤
+            const COMPANY_COLOR_HEX = ['#1d4ed8', '#15803d', '#8b4513', '#be185d', '#eab308']; // 점(dot) — 캘린더 일정 태그와 같은 진한 색
+            const COMPANY_BAR_HEX   = ['#60a5fa', '#4ade80', '#c89669', '#f472b6', '#facc15']; // 막대 — 한 단계 밝은 톤
             // 회사(color index) → { 제품명: { count, lines: Set<string> } }
             // lines: 같은 제품 키를 가진 일정들의 2번째 줄 이후 내용 (중복 제거)
             const byCompany = {};
@@ -2942,6 +2964,7 @@
             const leaveList = document.getElementById('leaveList');
             const dayEv = events[selectedDay] || [];
             const isAuth = isAdminUser(); // 편집 권한 (status/delete/edit 버튼 노출) — viewer 는 제외
+            const isAuthView = !!currentUser || localStorage.getItem('loggedIn') === 'true'; // 가시성 (planned/배포일 표시)
 
             function renderItem(ev, i) {
                 const ci = typeof ev === 'object' ? (ev.color || 0) : 0;
@@ -2952,17 +2975,15 @@
                 const lt = safeLeaveType(typeof ev === 'object' ? ev.leaveType : '');
                 const st = (typeof ev === 'object' && ev.status) || null;
                 const leaveLabel = isLeave ? `<span class="li-leave ${lt}">${LEAVE_LABELS[lt]}</span>` : '';
-                const colorDot = isLeave ? '' : `<div class="li-color c${ci % 4}"></div>`;
-                const stLabelText = st === 'done' ? '완료' : (st === 'final' ? '최종' : (st === 'release' ? '배포일' : ''));
-                const stLabel = st ? `<span class="status-label ${st}">${stLabelText}</span>` : '';
+                const colorDot = isLeave ? '' : `<div class="li-color c${ci % 5}"></div>`;
+                const stLabel = st ? `<span class="status-label ${st}">${st === 'done' ? '완료' : '최종'}</span>` : '';
                 const plannedBadge = isPlanned ? '<span class="li-planned-badge">🔒 예정</span>' : '';
                 const progressHtml = (!isLeave && progress > 0) ? `<span class="li-progress-wrap"><span class="li-progress-bar"><span class="li-progress-fill${progress === 100 ? ' done' : ''}" style="width:${progress}%"></span></span><span class="li-progress-value">${progress}%</span></span>` : '';
                 const hasUrl = !isLeave && isAuth && typeof ev === 'object' && typeof ev.url === 'string' && ev.url;
                 const urlBtnHtml = hasUrl ? `<a class="li-url-btn" href="${escHtml(ev.url)}" target="_blank" rel="noopener noreferrer" title="새 탭으로 열기: ${escHtml(ev.url)}" onclick="event.stopPropagation()">🔗</a>` : '';
                 const doneActive = st === 'done' ? ' active-done' : '';
                 const finalActive = st === 'final' ? ' active-final' : '';
-                const releaseActive = st === 'release' ? ' active-release' : '';
-                const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button><button class="status-btn${releaseActive}" onclick="toggleStatus(${i},'release')">배포일</button></div>` : '';
+                const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
                 const deleteBtn = isAuth ? `<button class="event-delete" onclick="deleteEvent(${i})">&#10005;</button>` : '';
                 const canEditText = isAuth && !isLeave;
                 const editClick = canEditText ? `onclick="editEvent(${i})"` : '';
@@ -2990,7 +3011,9 @@
             dayEv.forEach((ev, i) => {
                 const isLeave = typeof ev === 'object' && ev.leave;
                 const isPlanned = typeof ev === 'object' && ev.planned;
-                if (!isAuth && isPlanned) return;
+                const isReleaseColor = typeof ev === 'object' && ev.color === 4;
+                if (!isAuthView && isPlanned) return;
+                if (!isAuthView && isReleaseColor) return; // 배포일은 비로그인 시 숨김
                 if (isLeave) leaves.push(renderItem(ev, i));
                 else scheduleItems.push({ html: renderItem(ev, i), ev: ev });
             });
@@ -3263,13 +3286,13 @@
             COLOR_NAMES.forEach((name, ci) => {
                 const btn = document.createElement('span');
                 btn.textContent = name;
-                const colorValues = ['#1d4ed8','#15803d','#8b4513','#be185d'];
+                const colorValues = ['#1d4ed8','#15803d','#8b4513','#be185d','#eab308'];
                 btn.style.cssText = 'font-size:0.78em;padding:5px 10px;border-radius:6px;cursor:pointer;color:#fff;font-weight:600;white-space:nowrap;flex-shrink:0;border:2px solid ' + (ci === editColor ? '#333' : 'transparent') + ';background:' + colorValues[ci] + ';';
                 btn.onclick = function(e) {
                     e.stopPropagation();
                     editColor = ci;
                     colorRow.querySelectorAll('span').forEach((s, si) => s.style.borderColor = si === ci ? '#333' : 'transparent');
-                    if (colorDot) colorDot.className = 'li-color c' + (ci % 4);
+                    if (colorDot) colorDot.className = 'li-color c' + (ci % 5);
                 };
                 colorRow.appendChild(btn);
             });
@@ -3455,9 +3478,9 @@
         function copyAsHTML() {
             const startOffset = new Date(currentYear, currentMonth - 1, 1).getDay();
             const totalDays = new Date(currentYear, currentMonth, 0).getDate();
-            const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#8b4513', 3: '#be185d' };
+            const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#8b4513', 3: '#be185d', 4: '#eab308' };
             const leaveColors = { vacation: { bg: '#ffe0e6', color: '#d63031' }, am: { bg: '#e0f0ff', color: '#0984e3' }, pm: { bg: '#e8f5e9', color: '#27ae60' }, official: { bg: '#ede7ff', color: '#6c5ce7' } };
-            const statusColors = { done: { bg: '#fbbf24', color: '#333' }, final: { bg: '#f43f5e', color: '#fff' }, release: { bg: '#facc15', color: '#333' } };
+            const statusColors = { done: { bg: '#fbbf24', color: '#333' }, final: { bg: '#f43f5e', color: '#fff' } };
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
             const dayColors = ['#e74c3c', '#333', '#333', '#333', '#333', '#333', '#3498db'];
 
@@ -3514,12 +3537,12 @@
                     let stHtml = '';
                     if (st === 'done') stHtml = ` <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${statusColors.done.bg};color:${statusColors.done.color};font-weight:700;">완료</span>`;
                     else if (st === 'final') stHtml = ` <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${statusColors.final.bg};color:${statusColors.final.color};font-weight:700;">최종</span>`;
-                    else if (st === 'release') stHtml = ` <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${statusColors.release.bg};color:${statusColors.release.color};font-weight:700;">배포일</span>`;
                     let progHtml = '';
                     if (progress > 0) {
                         progHtml = `<div style="margin-top:3px;display:flex;align-items:center;gap:5px;"><div style="flex:1;height:4px;background:rgba(255,255,255,0.3);border-radius:2px;overflow:hidden;"><div style="width:${progress}%;height:100%;background:#fff;"></div></div><span style="font-size:10px;font-weight:700;color:#fff;">${progress}%</span></div>`;
                     }
-                    cell += `<div style="font-size:12px;padding:4px 7px;border-radius:4px;margin-bottom:5px;color:#fff;font-weight:500;background:${colors[ci % 4]};line-height:1.3;">${text}${stHtml}${progHtml}</div>`;
+                    const txtColor = (ci % 5) === 4 ? '#1f2937' : '#fff';
+                    cell += `<div style="font-size:12px;padding:4px 7px;border-radius:4px;margin-bottom:5px;color:${txtColor};font-weight:500;background:${colors[ci % 5]};line-height:1.3;">${text}${stHtml}${progHtml}</div>`;
                 });
 
                 cells.push({ html: cell, dow, empty: false });
@@ -3561,9 +3584,9 @@
         function copyAsHTMLCompat() {
             const startOffset = new Date(currentYear, currentMonth - 1, 1).getDay();
             const totalDays = new Date(currentYear, currentMonth, 0).getDate();
-            const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#8b4513', 3: '#be185d' };
+            const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#8b4513', 3: '#be185d', 4: '#eab308' };
             const leaveColors = { vacation: { bg: '#ffe0e6', color: '#d63031' }, am: { bg: '#e0f0ff', color: '#0984e3' }, pm: { bg: '#e8f5e9', color: '#27ae60' }, official: { bg: '#ede7ff', color: '#6c5ce7' } };
-            const statusColors = { done: { bg: '#fbbf24', color: '#333333' }, final: { bg: '#f43f5e', color: '#ffffff' }, release: { bg: '#facc15', color: '#333333' } };
+            const statusColors = { done: { bg: '#fbbf24', color: '#333333' }, final: { bg: '#f43f5e', color: '#ffffff' } };
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
             const dayColors = ['#e74c3c', '#333333', '#333333', '#333333', '#333333', '#333333', '#3498db'];
 
@@ -3638,14 +3661,13 @@
                         inner += ` <font color="#FFD700" style="color:#FFD700;font-size:10px;background:${statusColors.done.bg};padding:1px 4px;border-radius:3px;"><b>[완료]</b></font>`;
                     } else if (st === 'final') {
                         inner += ` <font color="#FFB6C1" style="color:#FFB6C1;font-size:10px;background:${statusColors.final.bg};padding:1px 4px;border-radius:3px;"><b>[최종]</b></font>`;
-                    } else if (st === 'release') {
-                        inner += ` <font color="#FFEB3B" style="color:#FFEB3B;font-size:10px;background:${statusColors.release.bg};padding:1px 4px;border-radius:3px;"><b>[배포일]</b></font>`;
                     }
                     if (progress > 0) {
                         // 진행률 바는 sanitizer 환경에서 깨지기 쉬워 텍스트로 표시
                         inner += ` <b style="font-size:11px;">(${progress}%)</b>`;
                     }
-                    cell += colorBox(colors[ci % 4], '#FFFFFF', inner, { fontSize: '12px', padding: '4px 7px', marginBottom: '5px' });
+                    const fgColor = (ci % 5) === 4 ? '#1F2937' : '#FFFFFF';
+                    cell += colorBox(colors[ci % 5], fgColor, inner, { fontSize: '12px', padding: '4px 7px', marginBottom: '5px' });
                 });
 
                 cells.push({ html: cell, dow, empty: false });
@@ -3814,7 +3836,7 @@
                         ev.leaveType = safeLeaveType(item.leaveType);
                     }
                     if (item.planned === true) ev.planned = true;
-                    if (item.status === 'done' || item.status === 'final' || item.status === 'release') ev.status = item.status;
+                    if (item.status === 'done' || item.status === 'final') ev.status = item.status;
                     const progress = Number(item.progress);
                     if (Number.isFinite(progress) && progress > 0 && progress <= 100) {
                         ev.progress = Math.round(progress);
