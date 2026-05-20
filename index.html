@@ -1362,7 +1362,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.8.0</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.8.1</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1471,6 +1471,14 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.8.1',
+                date: '2026-05-20',
+                title: '일정 정렬 통일 — 회사 → 가나다/알파벳순',
+                changed: [
+                    '같은 회사(색상) 내 일정 정렬을 입력 순서가 아니라 텍스트 가나다/알파벳순으로 통일. 캘린더 타일/모달 일정 리스트/일정 편집/일정표 복사/사내 게시판용 복사 5곳 모두 동일한 비교 함수 사용. 한글-영문 혼합도 ko 로케일 + numeric: true 옵션으로 자연스럽게 (예: "AIFILTER 2.5" < "AIFILTER 10.0")',
+                ],
+            },
             {
                 version: '1.8.0',
                 date: '2026-05-13',
@@ -2304,6 +2312,16 @@
             return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
         }
 
+        // 일정 정렬용 비교 함수: 색상(회사) 1차, 텍스트 가나다/알파벳 2차
+        function compareEvForSort(a, b) {
+            const ca = (typeof a === 'object' && a !== null && a.color != null) ? a.color : 0;
+            const cb = (typeof b === 'object' && b !== null && b.color != null) ? b.color : 0;
+            if (ca !== cb) return ca - cb;
+            const ta = (typeof a === 'object' && a !== null) ? (a.text || '') : (a || '');
+            const tb = (typeof b === 'object' && b !== null) ? (b.text || '') : (b || '');
+            return String(ta).localeCompare(String(tb), 'ko', { sensitivity: 'base', numeric: true });
+        }
+
         function saveEvents() {
             localStorage.setItem(storageKey(), JSON.stringify(events));
             if (db) db.ref(dbPath()).set(JSON.stringify(events));
@@ -2417,7 +2435,7 @@
                     if (typeof ev === 'object' && ev.leave) return false;
                     if (!isAuthView && typeof ev === 'object' && ev.planned) return false;
                     return true;
-                }).sort((a, b) => ((typeof a === 'object' ? a.color : 0) || 0) - ((typeof b === 'object' ? b.color : 0) || 0));
+                }).sort(compareEvForSort);
 
                 let holidayHtml = holiday ? `<span class="holiday-name">${holiday}</span>` : '';
                 let leaveHtml = '';
@@ -2863,9 +2881,9 @@
                 const isPlanned = typeof ev === 'object' && ev.planned;
                 if (!isAuth && isPlanned) return;
                 if (isLeave) leaves.push(renderItem(ev, i));
-                else scheduleItems.push({ html: renderItem(ev, i), color: (typeof ev === 'object' ? (ev.color || 0) : 0) });
+                else scheduleItems.push({ html: renderItem(ev, i), ev: ev });
             });
-            scheduleItems.sort((a, b) => a.color - b.color);
+            scheduleItems.sort((a, b) => compareEvForSort(a.ev, b.ev));
             const schedules = scheduleItems.map(s => s.html);
 
             scheduleList.innerHTML = schedules.length ? schedules.join('') : '<div class="no-events">등록된 제품 일정이 없습니다</div>';
@@ -3102,9 +3120,9 @@
             const scheduleItems = [];
             dayEv.forEach((e, i) => {
                 const eIsLeave = typeof e === 'object' && e.leave;
-                if (!eIsLeave) scheduleItems.push({ ev: e, idx: i, color: (typeof e === 'object' ? (e.color || 0) : 0) });
+                if (!eIsLeave) scheduleItems.push({ ev: e, idx: i });
             });
-            scheduleItems.sort((a, b) => a.color - b.color);
+            scheduleItems.sort((a, b) => compareEvForSort(a.ev, b.ev));
             const listIndex = scheduleItems.findIndex(s => s.idx === index);
             if (listIndex < 0) return;
 
@@ -3355,7 +3373,7 @@
                 const dayEv = events[d] || [];
                 const leaves = dayEv.filter(ev => typeof ev === 'object' && ev.leave);
                 const normal = dayEv.filter(ev => !(typeof ev === 'object' && ev.leave) && !(typeof ev === 'object' && ev.planned))
-                    .sort((a, b) => ((typeof a === 'object' ? a.color : 0) || 0) - ((typeof b === 'object' ? b.color : 0) || 0));
+                    .sort(compareEvForSort);
 
                 const holiday = getHoliday(currentYear, currentMonth, d);
                 const dateColor = holiday ? '#e74c3c' : dayColors[dow];
@@ -3469,7 +3487,7 @@
                 const dayEv = events[d] || [];
                 const leaves = dayEv.filter(ev => typeof ev === 'object' && ev.leave);
                 const normal = dayEv.filter(ev => !(typeof ev === 'object' && ev.leave) && !(typeof ev === 'object' && ev.planned))
-                    .sort((a, b) => ((typeof a === 'object' ? a.color : 0) || 0) - ((typeof b === 'object' ? b.color : 0) || 0));
+                    .sort(compareEvForSort);
 
                 const holiday = getHoliday(currentYear, currentMonth, d);
                 const dateColor = holiday ? '#e74c3c' : dayColors[dow];
