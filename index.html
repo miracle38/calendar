@@ -60,6 +60,8 @@
         .toolbar button:hover { background: rgba(255,255,255,0.35); }
         .auth-only { display: none; }
         .auth-only.cached-show { display: inline-block; }
+        .admin-only { display: none; }
+        .admin-only.cached-show { display: inline-block; }
         .toolbar button.btn-today { background: #fbbf24; color: #333; }
         .toolbar button.btn-today:hover { background: #fcd34d; }
         .toolbar button.btn-copy { background: #34d399; color: #fff; }
@@ -1353,7 +1355,7 @@
                 <button class="auth-only btn-copy" onclick="copyAsHTMLCompat()" title="사내 게시판/그루웨어용 (style 차단되어도 색상 유지)">사내 게시판용</button>
                 <button class="auth-only btn-copy" onclick="copyAsImage(event)" title="이미지(PNG)로 클립보드 복사 — 색상/레이아웃 완벽, 단 텍스트 검색 불가">이미지로 복사</button>
                 <button class="auth-only btn-export" onclick="exportJSON()">내보내기</button>
-                <button class="auth-only btn-import" onclick="document.getElementById('importFile').click()">불러오기</button>
+                <button class="auth-only admin-only btn-import" onclick="document.getElementById('importFile').click()">불러오기</button>
                 <button class="btn-print" onclick="window.print()">인쇄</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
                 <button id="authBtn" class="auth-btn" onclick="doLogin()">로그인</button>
@@ -1362,7 +1364,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.8.1</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.9.0</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1388,7 +1390,7 @@
             <div class="modal-header">
                 <h2 id="modalTitle">4월 1일</h2>
                 <div style="display:flex; gap:8px; align-items:center;">
-                    <button id="clearAllBtn" class="auth-only" onclick="clearAllEvents()" style="background:rgba(255,255,255,0.2); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:0.8em; font-weight:600; cursor:pointer; font-family:inherit;">전체 삭제</button>
+                    <button id="clearAllBtn" class="auth-only admin-only" onclick="clearAllEvents()" style="background:rgba(255,255,255,0.2); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:0.8em; font-weight:600; cursor:pointer; font-family:inherit;">전체 삭제</button>
                     <button class="modal-close" onclick="closeModal()">&times;</button>
                 </div>
             </div>
@@ -1471,6 +1473,31 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.9.0',
+                date: '2026-05-20',
+                title: '역할 분리 — Admin / Viewer',
+                added: [
+                    '사용자 역할 분리: ADMIN_EMAILS (기존 2명: miracle0938 / miracle38) + VIEWER_EMAILS (신규: wjdrytn1, miraclejiran1)',
+                    '뷰어 계정은 로그인 후 모든 정보 열람 가능하나 편집은 불가 — 일정 추가/편집/삭제, 휴가 추가, 상태 토글, 드래그, 메모 저장, 일정 가져오기, 전체 삭제 등 모든 쓰기 동작에 requireAdmin() 가드',
+                    '뷰어 계정의 헤더에 "(읽기 전용)" 표기. 모달 폼/색상 픽커/휴가 옵션 자동 숨김',
+                    '메모/일정별 메모 에디터는 뷰어에게 contenteditable=false 로 비활성화, 저장 버튼 숨김',
+                    'Firebase 보안 규칙 분리: .read 는 뷰어 포함 모두 허용, .write 는 ADMIN_EMAILS 만 허용 (Firebase Console 에서 규칙 게시 필요)',
+                    'Chrome 확장은 ADMIN_EMAILS 만 로그인 가능 (연차 동기화는 쓰기 작업이라 뷰어 제외)',
+                ],
+                changed: [
+                    'wjdrytn1@gmail.com, miraclejiran1@gmail.com 두 명을 viewer 로 추가',
+                    'auth-only 클래스 외에 admin-only 클래스 도입 — 전체 삭제 / 불러오기 등 위험 쓰기 동작 버튼은 뷰어에게 숨김',
+                ],
+            },
+            {
+                version: '1.8.2',
+                date: '2026-05-20',
+                title: '허용 사용자 추가',
+                changed: [
+                    'wjdrytn1@gmail.com 을 ALLOWED_EMAILS 화이트리스트에 추가 — index.html / Chrome 확장 / Firebase 보안 규칙 3곳 모두 반영 (Firebase Console 에서 규칙 게시 필요)',
+                ],
+            },
             {
                 version: '1.8.1',
                 date: '2026-05-20',
@@ -1791,8 +1818,36 @@
 
         let db = null;
         let currentUser = null;
+
+        // 권한 헬퍼 (ADMIN_EMAILS / VIEWER_EMAILS 는 아래에서 전역으로 선언됨)
+        function isAdminUser() {
+            if (currentUser && currentUser.email) {
+                return ADMIN_EMAILS.indexOf(currentUser.email) !== -1;
+            }
+            return localStorage.getItem('userRole') === 'admin';
+        }
+        function isViewerUser() {
+            if (currentUser && currentUser.email) {
+                return VIEWER_EMAILS.indexOf(currentUser.email) !== -1;
+            }
+            return localStorage.getItem('userRole') === 'viewer';
+        }
+        function requireAdmin(silent) {
+            if (isAdminUser()) return true;
+            if (!silent && isViewerUser()) alert('읽기 전용 계정입니다. 편집은 불가합니다.');
+            return false;
+        }
+        // 사용자 권한 그룹 (전역 스코프 — 헬퍼 함수에서 참조)
+        const ADMIN_EMAILS  = ['miracle0938@gmail.com', 'miracle38@jiran.com'];
+        const VIEWER_EMAILS = ['wjdrytn1@gmail.com', 'miraclejiran1@gmail.com'];
+        const ALLOWED_EMAILS = ADMIN_EMAILS.concat(VIEWER_EMAILS);
+
         if (localStorage.getItem('loggedIn') === 'true') {
+            const cachedRole = localStorage.getItem('userRole') || 'viewer';
             document.querySelectorAll('.auth-only').forEach(b => b.classList.add('cached-show'));
+            if (cachedRole === 'admin') {
+                document.querySelectorAll('.admin-only').forEach(b => b.classList.add('cached-show'));
+            }
             const cachedLabel = localStorage.getItem('loggedInLabel');
             if (cachedLabel) {
                 const authBtn = document.getElementById('authBtn');
@@ -1806,7 +1861,6 @@
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
-            const ALLOWED_EMAILS = ['miracle0938@gmail.com', 'miracle38@jiran.com'];
             firebase.auth().onAuthStateChanged(function(user) {
                 if (user && ALLOWED_EMAILS.indexOf(user.email) === -1) {
                     alert('허용되지 않은 계정입니다.');
@@ -1863,22 +1917,31 @@
 
         function updateAuthUI() {
             const btn = document.getElementById('authBtn');
-            const authOnlyBtns = document.querySelectorAll('.auth-only');
+            const authOnlyBtns  = document.querySelectorAll('.auth-only');
+            const adminOnlyBtns = document.querySelectorAll('.admin-only');
             if (currentUser) {
                 const label = currentUser.displayName || currentUser.email;
-                btn.textContent = label;
+                const role = ADMIN_EMAILS.indexOf(currentUser.email) !== -1 ? 'admin' : 'viewer';
+                btn.textContent = label + (role === 'viewer' ? ' (읽기 전용)' : '');
                 btn.classList.add('logged-in');
                 btn.title = '클릭하면 로그아웃';
                 authOnlyBtns.forEach(b => { b.classList.remove('cached-show'); b.style.display = 'inline-block'; });
+                adminOnlyBtns.forEach(b => {
+                    b.classList.remove('cached-show');
+                    b.style.display = role === 'admin' ? 'inline-block' : 'none';
+                });
                 localStorage.setItem('loggedIn', 'true');
                 localStorage.setItem('loggedInLabel', label);
+                localStorage.setItem('userRole', role);
             } else {
                 btn.textContent = '로그인';
                 btn.classList.remove('logged-in');
                 btn.title = 'Google 로그인';
                 authOnlyBtns.forEach(b => { b.classList.remove('cached-show'); b.style.display = 'none'; });
+                adminOnlyBtns.forEach(b => { b.classList.remove('cached-show'); b.style.display = 'none'; });
                 localStorage.removeItem('loggedIn');
                 localStorage.removeItem('loggedInLabel');
+                localStorage.removeItem('userRole');
                 const memoOv = document.getElementById('memoOverlay');
                 if (memoOv && memoOv.classList.contains('active')) closeMemo();
                 // 로그아웃 시 통계 패널 열려 있으면 닫기
@@ -2050,6 +2113,11 @@
             memoDraftActive = false;
             setupMemoListener();
             document.getElementById('memoOverlay').classList.add('active');
+            // 읽기 전용 계정은 메모 편집 비활성화 + 저장 버튼 숨김
+            const ed = document.getElementById('memoEditor');
+            if (ed) ed.setAttribute('contenteditable', isAdminUser() ? 'true' : 'false');
+            const saveBtn = document.getElementById('memoSaveBtn');
+            if (saveBtn) saveBtn.style.display = isAdminUser() ? '' : 'none';
             renderMemo();
             // 저장하지 않은 로컬 드래프트가 있으면 에디터에 복원
             const draft = loadMemoDraft();
@@ -2114,6 +2182,7 @@
         function saveMemo() {
             setMemoStatus('', '');
             if (!currentUser) { setMemoStatus('로그인이 필요합니다.', 'error'); return; }
+            if (!isAdminUser()) { setMemoStatus('읽기 전용 계정은 메모를 저장할 수 없습니다.', 'error'); return; }
             if (!db) { setMemoStatus('서버 연결이 되어있지 않습니다.', 'error'); return; }
             const ed = document.getElementById('memoEditor');
             const btn = document.getElementById('memoSaveBtn');
@@ -2341,6 +2410,8 @@
                 return;
             }
             box.style.display = 'block';
+            // 읽기 전용 계정은 편집 비활성화 (placeholder 도 숨김)
+            editor.setAttribute('contenteditable', isAdminUser() ? 'true' : 'false');
             if (document.activeElement !== editor) {
                 const raw = dayNotes[selectedDay] || '';
                 const looksHtml = /<[a-z][\s\S]*>/i.test(raw);
@@ -2351,6 +2422,7 @@
 
         function saveDayNote() {
             if (!currentUser || selectedDay === null) return;
+            if (!isAdminUser()) return; // 읽기 전용 계정은 메모 자동 저장 안 함
             const editor = document.getElementById('dayNoteEditor');
             if (!editor) return;
             const html = sanitizeMemoHtml(editor.innerHTML || '');
@@ -2443,7 +2515,7 @@
                     leaveHtml = '<div class="leave-tags">' + leaves.map(ev => {
                         const lt = safeLeaveType(ev.leaveType);
                         const evIdx = dayEv.indexOf(ev);
-                        const canDrag = currentUser ? 'draggable="true"' : '';
+                        const canDrag = isAdminUser() ? 'draggable="true"' : '';
                         return `<span class="leave-tag ${lt}" ${canDrag} data-from="${d}" data-idx="${evIdx}">${LEAVE_LABELS[lt]}: ${escHtml(ev.text)}</span>`;
                     }).join('') + '</div>';
                 }
@@ -2460,7 +2532,7 @@
                     if (st === 'done') stHtml = '<span class="tag-status done">완료</span>';
                     else if (st === 'final') stHtml = '<span class="tag-status final">최종</span>';
                     const evIdx = dayEv.indexOf(ev);
-                    const canDrag = currentUser ? 'draggable="true"' : '';
+                    const canDrag = isAdminUser() ? 'draggable="true"' : '';
                     const plannedCls = isPlanned ? ' planned' : '';
                     const plannedTitle = isPlanned ? ' (예정)' : '';
                     const progressTitle = progress > 0 ? ' · ' + progress + '%' : '';
@@ -2750,7 +2822,7 @@
         function handleDayClick(e, day) {
             if (e && (e.altKey || e.shiftKey)) return;
             const anyTag = e && e.target && e.target.closest('.event-tag, .leave-tag');
-            if (dKeyDown && currentUser && anyTag) {
+            if (dKeyDown && isAdminUser() && anyTag) {
                 e.preventDefault();
                 e.stopPropagation();
                 const idx = parseInt(anyTag.dataset.idx, 10);
@@ -2793,10 +2865,10 @@
             document.querySelectorAll('.leave-btn').forEach(btn => { btn.classList.remove('on'); btn.classList.add('off'); });
             document.getElementById('leaveForm').style.display = 'none';
             document.getElementById('memberSelect').value = '';
-            const isAuth = !!currentUser;
-            document.getElementById('colorPicker').style.display = isAuth ? 'flex' : 'none';
-            document.querySelector('.leave-options').style.display = isAuth ? 'flex' : 'none';
-            document.getElementById('eventForm').style.display = isAuth ? 'flex' : 'none';
+            const canEdit = isAdminUser();
+            document.getElementById('colorPicker').style.display = canEdit ? 'flex' : 'none';
+            document.querySelector('.leave-options').style.display = canEdit ? 'flex' : 'none';
+            document.getElementById('eventForm').style.display = canEdit ? 'flex' : 'none';
             renderColorPicker();
             renderEventList(editIdx);
             if (editIdx != null && events[day] && events[day][editIdx]) {
@@ -2810,10 +2882,11 @@
                 }, 80);
                 return;
             }
-            if (isAuth) setTimeout(() => document.getElementById('eventInput').focus(), 100);
+            if (canEdit) setTimeout(() => document.getElementById('eventInput').focus(), 100);
         }
 
         function clearAllEvents() {
+            if (!requireAdmin()) return;
             if (selectedDay === null) return;
             if (!events[selectedDay] || events[selectedDay].length === 0) { alert('삭제할 일정이 없습니다.'); return; }
             if (!confirm('이 날짜의 모든 일정을 삭제하시겠습니까?')) return;
@@ -2832,7 +2905,7 @@
             const scheduleList = document.getElementById('scheduleList');
             const leaveList = document.getElementById('leaveList');
             const dayEv = events[selectedDay] || [];
-            const isAuth = !!currentUser;
+            const isAuth = isAdminUser(); // 편집 권한 (status/delete/edit 버튼 노출) — viewer 는 제외
 
             function renderItem(ev, i) {
                 const ci = typeof ev === 'object' ? (ev.color || 0) : 0;
@@ -2892,6 +2965,7 @@
         }
 
         function addLeave() {
+            if (!requireAdmin()) return;
             const select = document.getElementById('memberSelect');
             const name = select.value;
             if (!name || selectedDay === null || !selectedLeave) return;
@@ -3058,6 +3132,7 @@
         }
 
         function addEvent() {
+            if (!requireAdmin()) return;
             const input = document.getElementById('eventInput');
             const text = input.value.trim();
             if (!text || selectedDay === null) return;
@@ -3107,6 +3182,7 @@
         }
 
         function editEvent(index) {
+            if (!requireAdmin()) return;
             if (selectedDay === null) return;
             const ev = events[selectedDay][index];
             const text = typeof ev === 'object' ? ev.text : ev;
@@ -3303,6 +3379,7 @@
         }
 
         function cycleLeaveType(index) {
+            if (!requireAdmin()) return;
             if (selectedDay === null) return;
             const ev = events[selectedDay][index];
             const types = ['vacation', 'am', 'pm', 'official'];
@@ -3314,6 +3391,7 @@
         }
 
         function toggleStatus(index, type) {
+            if (!requireAdmin()) return;
             if (selectedDay === null) return;
             const ev = events[selectedDay][index];
             if (typeof ev === 'object') {
@@ -3325,6 +3403,7 @@
         }
 
         function deleteEvent(index) {
+            if (!requireAdmin()) return;
             if (selectedDay === null) return;
             if (!confirm('삭제하시겠습니까?')) return;
             events[selectedDay].splice(index, 1);
@@ -3707,6 +3786,7 @@
         }
 
         function importJSON(e) {
+            if (!requireAdmin()) return;
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
@@ -3789,6 +3869,7 @@
         }, true);
 
         calDays.addEventListener('dragstart', function(e) {
+            if (!isAdminUser()) { e.preventDefault(); return; }
             const tag = e.target.closest('.event-tag, .leave-tag');
             if (!tag) return;
             tag.classList.add('dragging');

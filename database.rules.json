@@ -6,16 +6,16 @@
         ".write": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')"
       },
       "2000_00": {
-        ".read": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')",
+        ".read": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com' || auth.token.email === 'wjdrytn1@gmail.com' || auth.token.email === 'miraclejiran1@gmail.com')",
         ".write": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')"
       }
     },
     "calendar_notes": {
-      ".read": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')",
+      ".read": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com' || auth.token.email === 'wjdrytn1@gmail.com' || auth.token.email === 'miraclejiran1@gmail.com')",
       ".write": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')"
     },
     "annual_leave": {
-      ".read": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')",
+      ".read": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com' || auth.token.email === 'wjdrytn1@gmail.com' || auth.token.email === 'miraclejiran1@gmail.com')",
       ".write": "auth != null && (auth.token.email === 'miracle0938@gmail.com' || auth.token.email === 'miracle38@jiran.com')"
     },
     "baseball": {

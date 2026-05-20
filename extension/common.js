@@ -2,6 +2,7 @@
 
 const FIREBASE_API_KEY = 'AIzaSyDI5VxCwhP6RVtFcdvUBJnfpMvRiP7A0us';
 const FIREBASE_DB_URL = 'https://calendar-6df01-default-rtdb.firebaseio.com';
+// Chrome 확장은 관리자 계정만 사용 (연차 동기화는 쓰기 작업이라 viewer 제외)
 const ALLOWED_EMAILS = ['miracle0938@gmail.com', 'miracle38@jiran.com'];
 
 const GROUPWARE_ORG_ID = 165;          // 품질관리팀

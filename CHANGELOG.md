@@ -11,6 +11,27 @@
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-05-20
+
+### Added
+- **사용자 역할 분리 — Admin / Viewer**
+  - `ADMIN_EMAILS`: `miracle0938@gmail.com`, `miracle38@jiran.com` (편집 가능)
+  - `VIEWER_EMAILS`: `wjdrytn1@gmail.com`, `miraclejiran1@gmail.com` (읽기 전용)
+- 뷰어 계정은 로그인 후 모든 정보 열람 가능하나 **편집 불가** — 일정 추가/편집/삭제, 휴가 추가, 상태 토글, 드래그, 메모 저장/자동저장, 일정 가져오기, 전체 삭제 등 모든 쓰기 동작에 `requireAdmin()` 가드 적용. 뷰어가 쓰기 시도 시 "읽기 전용 계정입니다" 알림
+- 뷰어 계정의 헤더에 **`(읽기 전용)` 표기**, 모달 폼/색상 픽커/휴가 옵션 자동 숨김
+- 메모/일정별 메모 에디터는 뷰어에게 `contenteditable="false"` 로 비활성화, 저장 버튼 숨김
+- **Firebase 보안 규칙 분리**: `.read` 는 뷰어 포함 모두 허용, `.write` 는 ADMIN_EMAILS 만 허용. ⚠️ Firebase Console 에서 규칙 게시 필요
+- **Chrome 확장**: 연차 동기화는 쓰기 작업이라 뷰어 제외. `ADMIN_EMAILS` 만 로그인 가능
+
+### Changed
+- `auth-only` 클래스 외에 **`admin-only`** 클래스 도입 — 전체 삭제 / 불러오기 등 위험 쓰기 동작 버튼은 뷰어에게도 숨김
+- `localStorage.userRole` 에 역할 캐시 — Firebase 인증 복원 전에도 올바른 권한 UI 표시
+
+## [1.8.2] - 2026-05-20
+
+### Changed
+- 허용 사용자 화이트리스트에 `wjdrytn1@gmail.com` 추가 — `index.html` (Firebase Auth 가드) + `extension/common.js` (Chrome 확장) + `database.rules.json` (Firebase 보안 규칙 6경로: calendar/calendar_notes/annual_leave/baseball/tempmail/calendar 2000_00) 모두 반영. **Firebase Console 에서 규칙 게시 필요**
+
 ## [1.8.1] - 2026-05-20
 
 ### Changed
