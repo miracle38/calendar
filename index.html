@@ -713,6 +713,7 @@
 
         .status-label.done { background: #dbeafe; color: #2563eb; }
         .status-label.final { background: #dcfce7; color: #16a34a; }
+        .status-label.release { background: #fef9c3; color: #a16207; }
 
         .status-btns { display: flex; gap: 4px; flex-shrink: 0; }
 
@@ -726,6 +727,7 @@
         .status-btn:hover { background: #e8e8e8; }
         .status-btn.active-done { background: #dbeafe; color: #2563eb; border-color: #2563eb; }
         .status-btn.active-final { background: #dcfce7; color: #16a34a; border-color: #16a34a; }
+        .status-btn.active-release { background: #fef9c3; color: #a16207; border-color: #ca8a04; }
 
         .day .event-tag .tag-status {
             font-size: 0.8em; padding: 1px 4px;
@@ -735,6 +737,7 @@
 
         .tag-status.done { background: #fbbf24; color: #333; }
         .tag-status.final { background: #f43f5e; color: #fff; }
+        .tag-status.release { background: #facc15; color: #333; }
 
         /* 진행률 게이지 */
         .day .event-tag { position: relative; padding-bottom: 10px; }
@@ -1350,11 +1353,11 @@
                 <button onclick="prevMonth()">◀ 이전</button>
                 <button onclick="nextMonth()">다음 ▶</button>
                 <button class="btn-today" onclick="goToday()">오늘</button>
-                <button class="auth-only btn-memo" onclick="openMemo()">📝 메모</button>
-                <button class="auth-only btn-copy" onclick="copyAsHTML()" title="Gmail/노션/Word 등 표준 에디터용 (modern HTML)">일정표 복사</button>
-                <button class="auth-only btn-copy" onclick="copyAsHTMLCompat()" title="사내 게시판/그루웨어용 (style 차단되어도 색상 유지)">사내 게시판용</button>
-                <button class="auth-only btn-copy" onclick="copyAsImage(event)" title="이미지(PNG)로 클립보드 복사 — 색상/레이아웃 완벽, 단 텍스트 검색 불가">이미지로 복사</button>
-                <button class="auth-only btn-export" onclick="exportJSON()">내보내기</button>
+                <button class="auth-only admin-only btn-memo" onclick="openMemo()">📝 메모</button>
+                <button class="auth-only admin-only btn-copy" onclick="copyAsHTML()" title="Gmail/노션/Word 등 표준 에디터용 (modern HTML)">일정표 복사</button>
+                <button class="auth-only admin-only btn-copy" onclick="copyAsHTMLCompat()" title="사내 게시판/그루웨어용 (style 차단되어도 색상 유지)">사내 게시판용</button>
+                <button class="auth-only admin-only btn-copy" onclick="copyAsImage(event)" title="이미지(PNG)로 클립보드 복사 — 색상/레이아웃 완벽, 단 텍스트 검색 불가">이미지로 복사</button>
+                <button class="auth-only admin-only btn-export" onclick="exportJSON()">내보내기</button>
                 <button class="auth-only admin-only btn-import" onclick="document.getElementById('importFile').click()">불러오기</button>
                 <button class="btn-print" onclick="window.print()">인쇄</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -1364,7 +1367,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.9.0</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.10.0</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1473,6 +1476,25 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.10.0',
+                date: '2026-05-20',
+                title: '제품 상태에 [배포일] 추가 + 정렬 4단계 확장',
+                added: [
+                    '일정 상태 옵션에 [배포일] 추가 — 기존 [완료] / [최종] 옆에 노란색(#facc15) 뱃지로 표시. 캘린더 타일/모달 리스트/일정표 복사/사내 게시판용 복사/JSON 가져오기까지 일관 적용',
+                ],
+                changed: [
+                    '일정 정렬 규칙을 4단계로 확장: ① planned (일반 위, 예정 아래) → ② 회사 색상 → ③ 배포일은 같은 회사 그룹 내 마지막 → ④ 텍스트 가나다/알파벳',
+                ],
+            },
+            {
+                version: '1.9.1',
+                date: '2026-05-20',
+                title: '뷰어용 버튼 추가 숨김',
+                changed: [
+                    '뷰어 계정에서 상단 [📝 메모] / [일정표 복사] / [사내 게시판용] / [이미지로 복사] / [내보내기] 버튼 모두 숨김 — admin-only 클래스 추가. 뷰어는 캘린더 본문만 열람',
+                ],
+            },
             {
                 version: '1.9.0',
                 date: '2026-05-20',
@@ -2381,11 +2403,24 @@
             return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
         }
 
-        // 일정 정렬용 비교 함수: 색상(회사) 1차, 텍스트 가나다/알파벳 2차
+        // 일정 정렬 4단계: ① 일반/예정 그룹 ② 회사(색상) ③ 배포일 여부 ④ 텍스트 가나다
+        //   - planned(예정) 일정은 일반 일정 아래로
+        //   - 같은 회사(색상) 내에서 배포일 상태 일정은 마지막
+        //   - 그 외 동순위는 텍스트 가나다/알파벳순 (ko 로케일, 숫자 자연 정렬)
         function compareEvForSort(a, b) {
+            // 1차: planned (false=일반 → 위, true=예정 → 아래)
+            const pa = (typeof a === 'object' && a !== null && a.planned) ? 1 : 0;
+            const pb = (typeof b === 'object' && b !== null && b.planned) ? 1 : 0;
+            if (pa !== pb) return pa - pb;
+            // 2차: 회사 색상
             const ca = (typeof a === 'object' && a !== null && a.color != null) ? a.color : 0;
             const cb = (typeof b === 'object' && b !== null && b.color != null) ? b.color : 0;
             if (ca !== cb) return ca - cb;
+            // 3차: 배포일은 같은 회사 그룹 안에서 마지막
+            const ra = (typeof a === 'object' && a !== null && a.status === 'release') ? 1 : 0;
+            const rb = (typeof b === 'object' && b !== null && b.status === 'release') ? 1 : 0;
+            if (ra !== rb) return ra - rb;
+            // 4차: 텍스트 가나다/알파벳
             const ta = (typeof a === 'object' && a !== null) ? (a.text || '') : (a || '');
             const tb = (typeof b === 'object' && b !== null) ? (b.text || '') : (b || '');
             return String(ta).localeCompare(String(tb), 'ko', { sensitivity: 'base', numeric: true });
@@ -2531,6 +2566,7 @@
                     let stHtml = '';
                     if (st === 'done') stHtml = '<span class="tag-status done">완료</span>';
                     else if (st === 'final') stHtml = '<span class="tag-status final">최종</span>';
+                    else if (st === 'release') stHtml = '<span class="tag-status release">배포일</span>';
                     const evIdx = dayEv.indexOf(ev);
                     const canDrag = isAdminUser() ? 'draggable="true"' : '';
                     const plannedCls = isPlanned ? ' planned' : '';
@@ -2917,14 +2953,16 @@
                 const st = (typeof ev === 'object' && ev.status) || null;
                 const leaveLabel = isLeave ? `<span class="li-leave ${lt}">${LEAVE_LABELS[lt]}</span>` : '';
                 const colorDot = isLeave ? '' : `<div class="li-color c${ci % 4}"></div>`;
-                const stLabel = st ? `<span class="status-label ${st}">${st === 'done' ? '완료' : '최종'}</span>` : '';
+                const stLabelText = st === 'done' ? '완료' : (st === 'final' ? '최종' : (st === 'release' ? '배포일' : ''));
+                const stLabel = st ? `<span class="status-label ${st}">${stLabelText}</span>` : '';
                 const plannedBadge = isPlanned ? '<span class="li-planned-badge">🔒 예정</span>' : '';
                 const progressHtml = (!isLeave && progress > 0) ? `<span class="li-progress-wrap"><span class="li-progress-bar"><span class="li-progress-fill${progress === 100 ? ' done' : ''}" style="width:${progress}%"></span></span><span class="li-progress-value">${progress}%</span></span>` : '';
                 const hasUrl = !isLeave && isAuth && typeof ev === 'object' && typeof ev.url === 'string' && ev.url;
                 const urlBtnHtml = hasUrl ? `<a class="li-url-btn" href="${escHtml(ev.url)}" target="_blank" rel="noopener noreferrer" title="새 탭으로 열기: ${escHtml(ev.url)}" onclick="event.stopPropagation()">🔗</a>` : '';
                 const doneActive = st === 'done' ? ' active-done' : '';
                 const finalActive = st === 'final' ? ' active-final' : '';
-                const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button></div>` : '';
+                const releaseActive = st === 'release' ? ' active-release' : '';
+                const statusBtns = (isAuth && !isLeave) ? `<div class="status-btns"><button class="status-btn${doneActive}" onclick="toggleStatus(${i},'done')">완료</button><button class="status-btn${finalActive}" onclick="toggleStatus(${i},'final')">최종</button><button class="status-btn${releaseActive}" onclick="toggleStatus(${i},'release')">배포일</button></div>` : '';
                 const deleteBtn = isAuth ? `<button class="event-delete" onclick="deleteEvent(${i})">&#10005;</button>` : '';
                 const canEditText = isAuth && !isLeave;
                 const editClick = canEditText ? `onclick="editEvent(${i})"` : '';
@@ -3419,7 +3457,7 @@
             const totalDays = new Date(currentYear, currentMonth, 0).getDate();
             const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#8b4513', 3: '#be185d' };
             const leaveColors = { vacation: { bg: '#ffe0e6', color: '#d63031' }, am: { bg: '#e0f0ff', color: '#0984e3' }, pm: { bg: '#e8f5e9', color: '#27ae60' }, official: { bg: '#ede7ff', color: '#6c5ce7' } };
-            const statusColors = { done: { bg: '#fbbf24', color: '#333' }, final: { bg: '#f43f5e', color: '#fff' } };
+            const statusColors = { done: { bg: '#fbbf24', color: '#333' }, final: { bg: '#f43f5e', color: '#fff' }, release: { bg: '#facc15', color: '#333' } };
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
             const dayColors = ['#e74c3c', '#333', '#333', '#333', '#333', '#333', '#3498db'];
 
@@ -3476,6 +3514,7 @@
                     let stHtml = '';
                     if (st === 'done') stHtml = ` <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${statusColors.done.bg};color:${statusColors.done.color};font-weight:700;">완료</span>`;
                     else if (st === 'final') stHtml = ` <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${statusColors.final.bg};color:${statusColors.final.color};font-weight:700;">최종</span>`;
+                    else if (st === 'release') stHtml = ` <span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${statusColors.release.bg};color:${statusColors.release.color};font-weight:700;">배포일</span>`;
                     let progHtml = '';
                     if (progress > 0) {
                         progHtml = `<div style="margin-top:3px;display:flex;align-items:center;gap:5px;"><div style="flex:1;height:4px;background:rgba(255,255,255,0.3);border-radius:2px;overflow:hidden;"><div style="width:${progress}%;height:100%;background:#fff;"></div></div><span style="font-size:10px;font-weight:700;color:#fff;">${progress}%</span></div>`;
@@ -3524,7 +3563,7 @@
             const totalDays = new Date(currentYear, currentMonth, 0).getDate();
             const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#8b4513', 3: '#be185d' };
             const leaveColors = { vacation: { bg: '#ffe0e6', color: '#d63031' }, am: { bg: '#e0f0ff', color: '#0984e3' }, pm: { bg: '#e8f5e9', color: '#27ae60' }, official: { bg: '#ede7ff', color: '#6c5ce7' } };
-            const statusColors = { done: { bg: '#fbbf24', color: '#333333' }, final: { bg: '#f43f5e', color: '#ffffff' } };
+            const statusColors = { done: { bg: '#fbbf24', color: '#333333' }, final: { bg: '#f43f5e', color: '#ffffff' }, release: { bg: '#facc15', color: '#333333' } };
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
             const dayColors = ['#e74c3c', '#333333', '#333333', '#333333', '#333333', '#333333', '#3498db'];
 
@@ -3599,6 +3638,8 @@
                         inner += ` <font color="#FFD700" style="color:#FFD700;font-size:10px;background:${statusColors.done.bg};padding:1px 4px;border-radius:3px;"><b>[완료]</b></font>`;
                     } else if (st === 'final') {
                         inner += ` <font color="#FFB6C1" style="color:#FFB6C1;font-size:10px;background:${statusColors.final.bg};padding:1px 4px;border-radius:3px;"><b>[최종]</b></font>`;
+                    } else if (st === 'release') {
+                        inner += ` <font color="#FFEB3B" style="color:#FFEB3B;font-size:10px;background:${statusColors.release.bg};padding:1px 4px;border-radius:3px;"><b>[배포일]</b></font>`;
                     }
                     if (progress > 0) {
                         // 진행률 바는 sanitizer 환경에서 깨지기 쉬워 텍스트로 표시
@@ -3773,7 +3814,7 @@
                         ev.leaveType = safeLeaveType(item.leaveType);
                     }
                     if (item.planned === true) ev.planned = true;
-                    if (item.status === 'done' || item.status === 'final') ev.status = item.status;
+                    if (item.status === 'done' || item.status === 'final' || item.status === 'release') ev.status = item.status;
                     const progress = Number(item.progress);
                     if (Number.isFinite(progress) && progress > 0 && progress <= 100) {
                         ev.progress = Math.round(progress);
