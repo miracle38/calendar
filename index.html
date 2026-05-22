@@ -3512,7 +3512,7 @@
                 const dow = (startOffset + d - 1) % 7;
                 const dayEv = events[d] || [];
                 const leaves = dayEv.filter(ev => typeof ev === 'object' && ev.leave);
-                const normal = dayEv.filter(ev => !(typeof ev === 'object' && ev.leave) && !(typeof ev === 'object' && ev.planned))
+                const normal = dayEv.filter(ev => !(typeof ev === 'object' && ev.leave) && !(typeof ev === 'object' && ev.planned) && !(typeof ev === 'object' && ev.color === 4))
                     .sort(compareEvForSort);
 
                 const holiday = getHoliday(currentYear, currentMonth, d);
@@ -3627,7 +3627,7 @@
                 const dow = (startOffset + d - 1) % 7;
                 const dayEv = events[d] || [];
                 const leaves = dayEv.filter(ev => typeof ev === 'object' && ev.leave);
-                const normal = dayEv.filter(ev => !(typeof ev === 'object' && ev.leave) && !(typeof ev === 'object' && ev.planned))
+                const normal = dayEv.filter(ev => !(typeof ev === 'object' && ev.leave) && !(typeof ev === 'object' && ev.planned) && !(typeof ev === 'object' && ev.color === 4))
                     .sort(compareEvForSort);
 
                 const holiday = getHoliday(currentYear, currentMonth, d);
@@ -3767,8 +3767,8 @@
                         if (!node || node.nodeType !== 1) return true;
                         // 상단 툴바 통째로 제외 (이전/다음/오늘/메모/복사/내보내기/불러오기/인쇄/로그인 모두)
                         if (node.classList && node.classList.contains('toolbar')) return false;
-                        // 🔒 예정 일정 (내부 전용) 캡처 제외
-                        if (node.classList && node.classList.contains('planned')) return false;
+                        // 🔒 예정 일정 + 배포일(c4) — 비로그인 비공개 항목 캡처 제외
+                        if (node.classList && (node.classList.contains('planned') || (node.classList.contains('event-tag') && node.classList.contains('c4')))) return false;
                         // 📝 메모 아이콘 (내부 전용) 캡처 제외
                         if (node.classList && node.classList.contains('note-icon')) return false;
                         // 🔗 일정 URL 새 탭 아이콘 (로그인 사용자 전용) 캡처 제외
