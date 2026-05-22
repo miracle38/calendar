@@ -1378,7 +1378,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.11.0</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.12.0</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1487,6 +1487,17 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.12.0',
+                date: '2026-05-22',
+                title: '대체공휴일 데이터 수정 + 복사 시 비공개 항목 제외',
+                fixed: [
+                    '대체공휴일 오류 수정: 2027-6-7 대체공휴일(현충일) 삭제 — 현충일은 대체공휴일 미지원 대상',
+                    '대체공휴일 누락 6건 추가: 2026 광복절(8/17)·개천절(10/5), 2027 한글날(10/11)·크리스마스(12/27), 2029 어린이날(5/7), 2030 설날(2/5)',
+                    '일정표 복사·사내 게시판용 복사: 배포일(color=4) 일정 제외 누락 수정 — 기존에 🔒 예정만 제외되고 배포일은 포함되던 문제',
+                    '이미지로 복사: 배포일(c4 클래스) 요소 캡처 제외 누락 수정',
+                ],
+            },
             {
                 version: '1.11.0',
                 date: '2026-05-20',
