@@ -841,12 +841,18 @@
         .leave-btn.type-am.on { border-color: #0984e3; }
         .leave-btn.type-pm { background: #e8f5e9; color: #27ae60; }
         .leave-btn.type-pm.on { border-color: #27ae60; }
+        .leave-btn.type-am2 { background: #f0f8ff; color: #5dade2; }
+        .leave-btn.type-am2.on { border-color: #5dade2; }
+        .leave-btn.type-pm2 { background: #f1faf3; color: #58d68d; }
+        .leave-btn.type-pm2.on { border-color: #58d68d; }
         .leave-btn.type-official { background: #ede7ff; color: #6c5ce7; }
         .leave-btn.type-official.on { border-color: #6c5ce7; }
 
         .day .leave-tag.vacation { background: #ffe0e6; color: #d63031; }
         .day .leave-tag.am { background: #e0f0ff; color: #0984e3; }
         .day .leave-tag.pm { background: #e8f5e9; color: #27ae60; }
+        .day .leave-tag.am2 { background: #f0f8ff; color: #5dade2; }
+        .day .leave-tag.pm2 { background: #f1faf3; color: #58d68d; }
         .day .leave-tag.official { background: #ede7ff; color: #6c5ce7; }
 
         .event-list li .li-leave {
@@ -860,6 +866,8 @@
         .li-leave.vacation { background: #ffe0e6; color: #d63031; }
         .li-leave.am { background: #e0f0ff; color: #0984e3; }
         .li-leave.pm { background: #e8f5e9; color: #27ae60; }
+        .li-leave.am2 { background: #f0f8ff; color: #5dade2; }
+        .li-leave.pm2 { background: #f1faf3; color: #58d68d; }
         .li-leave.official { background: #ede7ff; color: #6c5ce7; }
 
         #memberSelect {
@@ -1196,6 +1204,8 @@
         .leave-day-chip.vacation { background: #ffe0e6; color: #d63031; }
         .leave-day-chip.am { background: #e0f0ff; color: #0984e3; }
         .leave-day-chip.pm { background: #e8f5e9; color: #27ae60; }
+        .leave-day-chip.am2 { background: #f0f8ff; color: #5dade2; }
+        .leave-day-chip.pm2 { background: #f1faf3; color: #58d68d; }
         .leave-day-chip.official { background: #ede7ff; color: #6c5ce7; }
         .leave-panel-summary {
             margin-top: 10px;
@@ -1378,7 +1388,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.12.1</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.13.0</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1463,6 +1473,8 @@
                     <button class="leave-btn type-vacation off" onclick="toggleLeave('vacation')">휴가</button>
                     <button class="leave-btn type-am off" onclick="toggleLeave('am')">오전반차</button>
                     <button class="leave-btn type-pm off" onclick="toggleLeave('pm')">오후반차</button>
+                    <button class="leave-btn type-am2 off" onclick="toggleLeave('am2')">오전반반차</button>
+                    <button class="leave-btn type-pm2 off" onclick="toggleLeave('pm2')">오후반반차</button>
                     <button class="leave-btn type-official off" onclick="toggleLeave('official')">공가</button>
                     <div id="leaveForm" style="display:none; align-items:center; gap:8px;">
                         <select id="memberSelect">
@@ -1488,6 +1500,19 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.13.0',
+                date: '2026-05-29',
+                title: '연차 유형에 [오전반반차] / [오후반반차] 추가 (0.25일)',
+                added: [
+                    '연차 유형 2종 추가 — `오전반반차`(am2), `오후반반차`(pm2). 각각 0.25일로 합계 차감',
+                    '연차 등록 버튼·캘린더 태그·사이드 패널·연차 패널 칩 모두 옅은 파랑/초록(`#5dade2`/`#58d68d`) 으로 시각적 구분',
+                    '연차 유형 순환(클릭)에 `am2`/`pm2` 추가 — vacation → am → pm → am2 → pm2 → official 순',
+                ],
+                changed: [
+                    '합계 표시 정밀도: 소수 1자리 → 최대 2자리. 0.25/0.75 도 정확히 표시되도록 `parseFloat(toFixed(2))` 적용',
+                ],
+            },
             {
                 version: '1.12.1',
                 date: '2026-05-29',
@@ -1869,7 +1894,7 @@
         let selectedColor = 0;
         let selectedLeave = null;
         const COLOR_NAMES = ['지란지교소프트', '지란지교데이터', 'DirectCloud', '기타', '배포일'];
-        const LEAVE_LABELS = { vacation: '휴가', am: '오전반차', pm: '오후반차', official: '공가' };
+        const LEAVE_LABELS = { vacation: '휴가', am: '오전반차', pm: '오후반차', am2: '오전반반차', pm2: '오후반반차', official: '공가' };
         const TEAM_MEMBERS = ['김해성', '원교현', '신주영', '김창희', '최선빈', '권서연', '김태언'];
         const MAX_VISIBLE = 6;
 
@@ -2027,7 +2052,7 @@
 
         // 허용된 leaveType 만 통과 (화이트리스트)
         function safeLeaveType(v) {
-            return (v === 'vacation' || v === 'am' || v === 'pm' || v === 'official') ? v : 'vacation';
+            return (v === 'vacation' || v === 'am' || v === 'pm' || v === 'am2' || v === 'pm2' || v === 'official') ? v : 'vacation';
         }
 
         // 메모 HTML sanitizer - 저장된 HTML을 innerHTML 로 렌더하기 전/붙여넣기 시 사용
@@ -2768,8 +2793,12 @@
                         const lt = ev.leaveType || 'vacation';
                         if (lt === 'official') {
                             stats[name].official += 1;
+                        } else if (lt === 'am2' || lt === 'pm2') {
+                            stats[name].total += 0.25;
+                        } else if (lt === 'am' || lt === 'pm') {
+                            stats[name].total += 0.5;
                         } else {
-                            stats[name].total += (lt === 'am' || lt === 'pm') ? 0.5 : 1;
+                            stats[name].total += 1;
                         }
                         stats[name].days.push({ day: parseInt(d, 10), type: lt });
                     }
@@ -2790,7 +2819,7 @@
             let totalDays = 0;
             let totalOfficial = 0;
             let usedCount = 0;
-            const fmtTotal = n => (Number.isInteger(n) ? n : n.toFixed(1));
+            const fmtTotal = n => (Number.isInteger(n) ? n : parseFloat(n.toFixed(2)));
             const hasAnnualData = annualLeaveData && Object.keys(annualLeaveData).length > 0;
             const html = names.map(name => {
                 const s = stats[name];
@@ -2800,7 +2829,7 @@
                 const totalClass = s.total === 0 ? 'zero' : '';
                 const officialBadge = s.official > 0 ? `<span class="leave-user-official">공가 ${s.official}일</span>` : '';
                 const chipsHtml = s.days.slice().sort((a, b) => a.day - b.day || a.type.localeCompare(b.type)).map(d => {
-                    const suffix = d.type === 'am' ? ' 오전' : d.type === 'pm' ? ' 오후' : '';
+                    const suffix = d.type === 'am' ? ' 오전' : d.type === 'pm' ? ' 오후' : d.type === 'am2' ? ' 오전½' : d.type === 'pm2' ? ' 오후½' : '';
                     return `<span class="leave-day-chip ${d.type}">${d.day}일${suffix}</span>`;
                 }).join('');
                 const annualHtml = renderAnnualForUser(name, hasAnnualData);
@@ -2834,7 +2863,7 @@
             const used = Number(info.totalUsedNum) || 0;
             const remain = Number(info.remainNum) || 0;
             const pct = yearNum > 0 ? Math.min(100, Math.max(0, Math.round((used / yearNum) * 100))) : 0;
-            const fmt = n => (Number.isInteger(n) ? n : n.toFixed(1));
+            const fmt = n => (Number.isInteger(n) ? n : parseFloat(n.toFixed(2)));
             const fillCls = remain === 0 ? 'empty' : (yearNum > 0 && remain <= yearNum * 0.2 ? 'warn' : '');
             const remainCls = remain === 0 ? 'zero' : '';
             return `<div class="leave-user-annual" title="그룹웨어 기준 연간 잔여/사용/총 부여">
@@ -3464,7 +3493,7 @@
             if (!requireAdmin()) return;
             if (selectedDay === null) return;
             const ev = events[selectedDay][index];
-            const types = ['vacation', 'am', 'pm', 'official'];
+            const types = ['vacation', 'am', 'pm', 'am2', 'pm2', 'official'];
             const curr = types.indexOf(safeLeaveType(ev.leaveType));
             ev.leaveType = types[(curr + 1) % types.length];
             saveEvents();
