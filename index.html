@@ -1378,7 +1378,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.12.0</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.12.1</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1473,6 +1473,7 @@
                             <option value="김창희">김창희</option>
                             <option value="최선빈">최선빈</option>
                             <option value="권서연">권서연</option>
+                            <option value="김태언">김태언</option>
                         </select>
                         <button class="leave-add-btn" onclick="addLeave()">추가</button>
                     </div>
@@ -1487,6 +1488,15 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.12.1',
+                date: '2026-05-29',
+                title: '팀원에 김태언 추가',
+                added: [
+                    '`TEAM_MEMBERS` 에 김태언 추가 — 연차 현황 패널에 행이 노출됨',
+                    '연차 등록 드롭다운(`#memberSelect`)에 김태언 옵션 추가 — 등록 시 연차 패널 집계에 반영',
+                ],
+            },
             {
                 version: '1.12.0',
                 date: '2026-05-22',
@@ -1860,7 +1870,7 @@
         let selectedLeave = null;
         const COLOR_NAMES = ['지란지교소프트', '지란지교데이터', 'DirectCloud', '기타', '배포일'];
         const LEAVE_LABELS = { vacation: '휴가', am: '오전반차', pm: '오후반차', official: '공가' };
-        const TEAM_MEMBERS = ['김해성', '원교현', '신주영', '김창희', '최선빈', '권서연'];
+        const TEAM_MEMBERS = ['김해성', '원교현', '신주영', '김창희', '최선빈', '권서연', '김태언'];
         const MAX_VISIBLE = 6;
 
         const firebaseConfig = {
