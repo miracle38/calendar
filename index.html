@@ -1388,7 +1388,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.13.0</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.13.1</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1500,6 +1500,14 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.13.1',
+                date: '2026-06-01',
+                title: '일정표 복사 시 오전/오후 반반차(am2/pm2) 크래시 수정',
+                fixed: [
+                    '`일정표 복사` / `사내 게시판용` 복사가 `오전반반차`(am2)·`오후반반차`(pm2) 연차가 포함된 달에서 동작하지 않던 문제 수정 — 두 함수의 `leaveColors` 맵에 am2/pm2 색상이 누락되어 `undefined.bg` 예외가 발생, 복사가 중단되던 버그. v1.13.0 에서 연차 유형만 추가하고 복사 함수는 갱신 누락',
+                ],
+            },
             {
                 version: '1.13.0',
                 date: '2026-05-29',
@@ -3529,7 +3537,7 @@
             const startOffset = new Date(currentYear, currentMonth - 1, 1).getDay();
             const totalDays = new Date(currentYear, currentMonth, 0).getDate();
             const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#8b4513', 3: '#be185d', 4: '#eab308' };
-            const leaveColors = { vacation: { bg: '#ffe0e6', color: '#d63031' }, am: { bg: '#e0f0ff', color: '#0984e3' }, pm: { bg: '#e8f5e9', color: '#27ae60' }, official: { bg: '#ede7ff', color: '#6c5ce7' } };
+            const leaveColors = { vacation: { bg: '#ffe0e6', color: '#d63031' }, am: { bg: '#e0f0ff', color: '#0984e3' }, pm: { bg: '#e8f5e9', color: '#27ae60' }, am2: { bg: '#f0f8ff', color: '#5dade2' }, pm2: { bg: '#f1faf3', color: '#58d68d' }, official: { bg: '#ede7ff', color: '#6c5ce7' } };
             const statusColors = { done: { bg: '#fbbf24', color: '#333' }, final: { bg: '#f43f5e', color: '#fff' } };
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
             const dayColors = ['#e74c3c', '#333', '#333', '#333', '#333', '#333', '#3498db'];
@@ -3635,7 +3643,7 @@
             const startOffset = new Date(currentYear, currentMonth - 1, 1).getDay();
             const totalDays = new Date(currentYear, currentMonth, 0).getDate();
             const colors = { 0: '#1d4ed8', 1: '#15803d', 2: '#8b4513', 3: '#be185d', 4: '#eab308' };
-            const leaveColors = { vacation: { bg: '#ffe0e6', color: '#d63031' }, am: { bg: '#e0f0ff', color: '#0984e3' }, pm: { bg: '#e8f5e9', color: '#27ae60' }, official: { bg: '#ede7ff', color: '#6c5ce7' } };
+            const leaveColors = { vacation: { bg: '#ffe0e6', color: '#d63031' }, am: { bg: '#e0f0ff', color: '#0984e3' }, pm: { bg: '#e8f5e9', color: '#27ae60' }, am2: { bg: '#f0f8ff', color: '#5dade2' }, pm2: { bg: '#f1faf3', color: '#58d68d' }, official: { bg: '#ede7ff', color: '#6c5ce7' } };
             const statusColors = { done: { bg: '#fbbf24', color: '#333333' }, final: { bg: '#f43f5e', color: '#ffffff' } };
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
             const dayColors = ['#e74c3c', '#333333', '#333333', '#333333', '#333333', '#333333', '#3498db'];
