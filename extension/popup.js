@@ -42,11 +42,28 @@
         }
     }
 
+    async function refreshGwAuthLine() {
+        const el = $('gwAuthStatus');
+        if (!el) return;
+        const { gwHeadersAt, lastSyncAt } = await chrome.storage.local.get(['gwHeadersAt', 'lastSyncAt']);
+        // 그룹웨어가 쿠키 세션만으로 인가하는 환경에서는 가로챌 토큰이 없으므로,
+        // 최근 동기화가 성공했다면 토큰이 없어도 '정상(세션 쿠키)'으로 표시한다.
+        const syncedRecently = lastSyncAt && (Date.now() - lastSyncAt < 26 * 60 * 60 * 1000);
+        if (gwHeadersAt) {
+            setStatus(el, '그룹웨어 인증: 확보됨 (토큰 ' + fmtAgo(gwHeadersAt) + ')', 'success');
+        } else if (syncedRecently) {
+            setStatus(el, '그룹웨어 연동: 정상 (세션 쿠키)', 'success');
+        } else {
+            setStatus(el, '그룹웨어 인증: 미확보 — 그룹웨어 인사/연차 화면을 한 번 열어주세요', 'error');
+        }
+    }
+
     const auth = await getValidAuth();
     if (auth) {
         $('userEmail').textContent = auth.email || '(unknown)';
         show('in');
         await refreshStatusLine();
+        await refreshGwAuthLine();
     } else {
         show('out');
     }
@@ -80,12 +97,17 @@
             $('userEmail').textContent = result.email;
             show('in');
             await refreshStatusLine();
+            await refreshGwAuthLine();
         } catch (e) {
-            const tmp = document.createElement('div');
-            tmp.className = 'status error';
-            tmp.textContent = '로그인 실패: ' + (e && e.message || e);
-            loggedOut.appendChild(tmp);
-            setTimeout(() => tmp.remove(), 4000);
+            // 실패 사유는 진단에 중요하므로 자동으로 사라지지 않고 다음 시도 전까지 유지한다.
+            let box = $('loginError');
+            if (!box) {
+                box = document.createElement('div');
+                box.id = 'loginError';
+                loggedOut.appendChild(box);
+            }
+            box.className = 'status error';
+            box.textContent = '로그인 실패: ' + (e && e.message || e);
         } finally {
             btn.disabled = false; btn.textContent = '로그인';
         }
@@ -113,6 +135,7 @@
                 setStatus(syncStatus, '실패: ' + ((resp && resp.error) || '응답 없음'), 'error');
             }
             await refreshStatusLine();
+            await refreshGwAuthLine();
         } catch (e) {
             setStatus(syncStatus, '실패: ' + (e && e.message || e), 'error');
         } finally {

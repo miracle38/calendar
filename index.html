@@ -1388,7 +1388,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.13.1</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.13.2</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1500,6 +1500,18 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.13.2',
+                date: '2026-06-05',
+                title: '연차 동기화 안정화 (Chrome 확장 v1.1.0 동반)',
+                fixed: [
+                    '연차 패널 연도 이동 중 Firebase 콜백이 잘못된 연도의 localStorage 키에 저장하던 race condition 수정 — 콜백 클로저에서 연도를 값(`const year`)으로 캡처',
+                    '미동기화 안내 문구를 폐기된 `npm run sync` 에서 `확장 팝업에서 로그인 후 동기화` 안내로 교체',
+                ],
+                changed: [
+                    '그룹웨어 SSO에 인증 단계가 추가돼 쿠키만으로 API 인가가 안 되는 경우 대비 — Chrome 확장(연차 자동 동기화) **v1.1.0**: 그룹웨어 페이지가 보내는 인증 헤더(`Authorization` 등)를 가로채 동기화에 재사용(쿠키/토큰 자동 적응), 팝업에 연동 상태 표시, 401/403 알림 정교화, 로그인 실패 메시지 유지, 비밀번호 재설정 이메일 버튼 추가',
+                ],
+            },
             {
                 version: '1.13.1',
                 date: '2026-06-01',

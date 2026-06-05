@@ -82,11 +82,31 @@ async function getValidAuth() {
 
 // ===== 그룹웨어 API → 캘린더 Firebase 푸시 =====
 
+// background.js 가 가로채 저장해 둔 그룹웨어 인증 헤더(Authorization 등)
+async function getCapturedGwHeaders() {
+    try {
+        const { gwHeaders } = await chrome.storage.local.get(['gwHeaders']);
+        return gwHeaders && typeof gwHeaders === 'object' && Object.keys(gwHeaders).length ? gwHeaders : null;
+    } catch (_) { return null; }
+}
+
 async function fetchGroupwarePayload() {
     const url = annualSummaryUrl(currentYear(), GROUPWARE_ORG_ID);
-    const res = await fetch(url, { method: 'GET', credentials: 'include',
-                                    headers: { 'Accept': 'application/json' } });
-    if (!res.ok) throw new Error('그룹웨어 API HTTP ' + res.status);
+    const headers = { 'Accept': 'application/json' };
+    // 쿠키(credentials:include)만으로 부족한 경우를 대비해, 페이지가 실제로 쓰는 인증 헤더를 함께 실어 보낸다.
+    const captured = await getCapturedGwHeaders();
+    if (captured) Object.assign(headers, captured);
+
+    const res = await fetch(url, { method: 'GET', credentials: 'include', headers });
+    if (!res.ok) {
+        let body = '';
+        try { body = (await res.text()).slice(0, 200); } catch (_) {}
+        const err = new Error('그룹웨어 API HTTP ' + res.status + (body ? ' — ' + body : ''));
+        err.status = res.status;
+        // 401/403 인데 가로챈 토큰이 아예 없으면 → 그룹웨어 화면을 한 번 열어 토큰을 확보해야 함
+        err.needsToken = (res.status === 401 || res.status === 403) && !captured;
+        throw err;
+    }
     const data = await res.json();
     if (!data || !data.success || !Array.isArray(data.payload)) {
         throw new Error('그룹웨어 응답 비정상');

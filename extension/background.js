@@ -31,6 +31,33 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
     await tryRunSync('tab:' + new URL(tab.url).pathname);
 });
 
+// 그룹웨어 API 요청의 인증 헤더를 가로채 저장한다.
+// 그룹웨어 SSO에 인증 단계가 추가돼 쿠키(credentials:include)만으로 API 인가가
+// 안 되는 경우, 페이지가 실제로 보내는 Authorization 등 헤더를 재사용하기 위함.
+// 사용자가 그룹웨어 인사/연차 화면을 열면 그 요청에서 토큰을 확보한다.
+const GW_API_FILTER = { urls: ['https://jiran.api.groupware.pro/*'] };
+const CAPTURE_HEADER_NAMES = ['authorization', 'x-auth-token', 'x-access-token'];
+
+chrome.webRequest.onSendHeaders.addListener(
+    (details) => {
+        try {
+            if (!Array.isArray(details.requestHeaders)) return;
+            const grabbed = {};
+            for (const h of details.requestHeaders) {
+                if (!h || !h.value) continue;
+                if (CAPTURE_HEADER_NAMES.indexOf((h.name || '').toLowerCase()) !== -1) {
+                    grabbed[h.name] = h.value;
+                }
+            }
+            if (Object.keys(grabbed).length > 0) {
+                chrome.storage.local.set({ gwHeaders: grabbed, gwHeadersAt: Date.now() });
+            }
+        } catch (_) { /* 관찰 전용 — 실패해도 무시 */ }
+    },
+    GW_API_FILTER,
+    ['requestHeaders', 'extraHeaders']
+);
+
 async function tryRunSync(trigger) {
     try {
         const r = await runSync();
@@ -45,8 +72,12 @@ async function tryRunSync(trigger) {
         console.warn('[leave-sync] failed (' + trigger + '): ' + msg);
         if (/로그인 필요/.test(msg) || /TOKEN/.test(msg)) {
             notify('연차 동기화 실패', '확장 팝업에서 로그인이 필요합니다');
-        } else if (/그룹웨어 API HTTP 4/.test(msg)) {
-            notify('연차 동기화 실패', '그룹웨어 로그인이 만료됐습니다. 그룹웨어에 접속해 주세요.');
+        } else if ((e && (e.status === 401 || e.status === 403)) || /그룹웨어 API HTTP 4/.test(msg)) {
+            if (e && e.needsToken) {
+                notify('연차 동기화 실패', '그룹웨어 인증 정보가 없습니다. 그룹웨어 인사/연차 화면을 한 번 열어 인증을 갱신해 주세요.');
+            } else {
+                notify('연차 동기화 실패', '그룹웨어 인증이 만료됐습니다. 그룹웨어에 다시 로그인(추가 인증 포함)한 뒤 인사 화면을 열어 주세요.');
+            }
         } else {
             notify('연차 동기화 실패', msg.substring(0, 120));
         }

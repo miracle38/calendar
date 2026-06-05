@@ -3,8 +3,8 @@
   "name": "캘린더 연차 자동 동기화",
   "short_name": "LeaveSync",
   "description": "그룹웨어 페이지 방문 시 잔여 연차 정보를 자동으로 캘린더 Firebase로 동기화",
-  "version": "1.0.0",
-  "permissions": ["alarms", "storage", "notifications"],
+  "version": "1.1.0",
+  "permissions": ["alarms", "storage", "notifications", "webRequest"],
   "host_permissions": [
     "https://jiran.groupware.pro/*",
     "https://jiran.api.groupware.pro/*",
