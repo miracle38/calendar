@@ -51,6 +51,23 @@
         show('out');
     }
 
+    $('resetBtn').addEventListener('click', async () => {
+        const btn = $('resetBtn');
+        const statusEl = $('resetStatus');
+        const email = $('email').value.trim();
+        if (!email) { statusEl.className = 'status error'; statusEl.textContent = '이메일을 먼저 입력하세요'; return; }
+        btn.disabled = true; btn.textContent = '전송 중...';
+        statusEl.className = ''; statusEl.textContent = '';
+        try {
+            await sendPasswordResetEmail(email);
+            statusEl.className = 'status success'; statusEl.textContent = '재설정 이메일을 전송했습니다. 받은 편지함을 확인하세요.';
+        } catch (e) {
+            statusEl.className = 'status error'; statusEl.textContent = '실패: ' + (e && e.message || e);
+        } finally {
+            btn.disabled = false; btn.textContent = '비밀번호 재설정 이메일 전송';
+        }
+    });
+
     $('loginBtn').addEventListener('click', async () => {
         const btn = $('loginBtn');
         btn.disabled = true; btn.textContent = '로그인 중...';

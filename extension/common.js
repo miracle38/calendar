@@ -55,6 +55,16 @@ async function refreshIdToken(refreshToken) {
     };
 }
 
+async function sendPasswordResetEmail(email) {
+    const res = await fetch(
+        'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=' + FIREBASE_API_KEY,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requestType: 'PASSWORD_RESET', email }) }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data && data.error && data.error.message || 'Failed');
+}
+
 async function getValidAuth() {
     const stored = await chrome.storage.local.get(['auth']);
     if (!stored.auth) return null;
