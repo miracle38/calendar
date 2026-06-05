@@ -2423,10 +2423,11 @@
                     db.ref(`/annual_leave/${annualLeaveListenerYear}`).off();
                 }
                 annualLeaveData = readAnnualLeaveCache(currentYear);
-                annualLeaveListenerYear = currentYear;
-                db.ref(`/annual_leave/${currentYear}`).on('value', function(snap) {
+                const year = currentYear;
+                annualLeaveListenerYear = year;
+                db.ref(`/annual_leave/${year}`).on('value', function(snap) {
                     annualLeaveData = snap.val() || {};
-                    try { localStorage.setItem(annualLeaveStorageKey(currentYear), JSON.stringify(annualLeaveData)); } catch (_) {}
+                    try { localStorage.setItem(annualLeaveStorageKey(year), JSON.stringify(annualLeaveData)); } catch (_) {}
                     renderLeaveSummary();
                 });
             }
@@ -2888,7 +2889,7 @@
             if (!currentUser && localStorage.getItem('loggedIn') !== 'true') { el.innerHTML = ''; el.className = 'leave-panel-sync'; return; }
             if (!annualLeaveMeta || !annualLeaveMeta.lastSyncAt) {
                 el.className = 'leave-panel-sync empty';
-                el.textContent = '연차 데이터 미동기화 — npm run sync 실행 필요';
+                el.textContent = '연차 데이터 미동기화 — 확장 팝업에서 로그인 후 동기화 버튼을 눌러주세요';
                 return;
             }
             const ts = Number(annualLeaveMeta.lastSyncAt);

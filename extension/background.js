@@ -45,8 +45,9 @@ async function tryRunSync(trigger) {
         console.warn('[leave-sync] failed (' + trigger + '): ' + msg);
         if (/로그인 필요/.test(msg) || /TOKEN/.test(msg)) {
             notify('연차 동기화 실패', '확장 팝업에서 로그인이 필요합니다');
-        } else if (!/그룹웨어 API HTTP 4/.test(msg)) {
-            // 401/403 은 SSO 만료라 사용자가 알 필요 없음 (그룹웨어 페이지 다시 보면 자동 재시도)
+        } else if (/그룹웨어 API HTTP 4/.test(msg)) {
+            notify('연차 동기화 실패', '그룹웨어 로그인이 만료됐습니다. 그룹웨어에 접속해 주세요.');
+        } else {
             notify('연차 동기화 실패', msg.substring(0, 120));
         }
     }
