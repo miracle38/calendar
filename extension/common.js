@@ -114,6 +114,43 @@ async function fetchGroupwarePayload() {
     return data.payload;
 }
 
+// ===== 그룹웨어 근태(출퇴근) → 일일 진행업무 앱 =====
+
+function worktimesUrl(startYmd, endYmd) {
+    return 'https://jiran.api.groupware.pro/v1/hr/commute/my/worktimes'
+        + '?startYmd=' + startYmd + '&endYmd=' + endYmd;
+}
+
+// "2026-07-01T09:32:00" → "09:32", null/빈값 → ""
+function isoToHm(v) {
+    const m = String(v || '').match(/T(\d{2}):(\d{2})/);
+    return m ? (m[1] + ':' + m[2]) : '';
+}
+
+// startYmd~endYmd 범위의 내 출퇴근을 [{date, clockIn, clockOut}] 로 반환
+async function fetchWorktimes(startYmd, endYmd) {
+    const headers = { 'Accept': 'application/json' };
+    const captured = await getCapturedGwHeaders();
+    if (captured) Object.assign(headers, captured);
+
+    const res = await fetch(worktimesUrl(startYmd, endYmd), { method: 'GET', credentials: 'include', headers });
+    if (!res.ok) {
+        let body = '';
+        try { body = (await res.text()).slice(0, 200); } catch (_) {}
+        const err = new Error('그룹웨어 API HTTP ' + res.status + (body ? ' — ' + body : ''));
+        err.status = res.status;
+        err.needsToken = (res.status === 401 || res.status === 403) && !captured;
+        throw err;
+    }
+    const data = await res.json();
+    if (!data || !data.success || !Array.isArray(data.payload)) {
+        throw new Error('그룹웨어 응답 비정상');
+    }
+    return data.payload
+        .map((p) => ({ date: p.baseDate, clockIn: isoToHm(p.checkInTime), clockOut: isoToHm(p.checkOutTime) }))
+        .filter((x) => x.date);
+}
+
 function transformPayload(payload, year) {
     const now = Date.now();
     const byName = {};

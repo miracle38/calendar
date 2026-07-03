@@ -2,19 +2,27 @@
   "manifest_version": 3,
   "name": "캘린더 연차 자동 동기화",
   "short_name": "LeaveSync",
-  "description": "그룹웨어 페이지 방문 시 잔여 연차 정보를 자동으로 캘린더 Firebase로 동기화",
-  "version": "1.1.0",
+  "description": "그룹웨어 연차→캘린더 동기화 + 출퇴근→일일 진행업무 앱 브리지",
+  "version": "1.2.0",
   "permissions": ["alarms", "storage", "notifications", "webRequest"],
   "host_permissions": [
     "https://jiran.groupware.pro/*",
     "https://jiran.api.groupware.pro/*",
     "https://identitytoolkit.googleapis.com/*",
     "https://securetoken.googleapis.com/*",
-    "https://calendar-6df01-default-rtdb.firebaseio.com/*"
+    "https://calendar-6df01-default-rtdb.firebaseio.com/*",
+    "https://daily-work-log-orcin.vercel.app/*"
   ],
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["https://daily-work-log-orcin.vercel.app/*", "http://localhost/*"],
+      "js": ["dwl-bridge.js"],
+      "run_at": "document_start"
+    }
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_title": "캘린더 연차 동기화",

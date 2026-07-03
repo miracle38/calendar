@@ -104,4 +104,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             .catch(e => sendResponse({ ok: false, error: String(e && e.message || e) }));
         return true; // async
     }
+    // 일일 진행업무 앱(콘텐츠 스크립트)에서 온 출퇴근 조회 요청
+    if (msg && msg.type === 'dwl-get-worktimes') {
+        fetchWorktimes(msg.startYmd, msg.endYmd)
+            .then(data => sendResponse({ ok: true, data }))
+            .catch(e => sendResponse({ ok: false, error: String(e && e.message || e) }));
+        return true; // async
+    }
 });
