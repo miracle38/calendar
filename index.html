@@ -1388,7 +1388,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.1</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.2</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1484,7 +1484,6 @@
                             <option value="신주영">신주영</option>
                             <option value="최선빈">최선빈</option>
                             <option value="권서연">권서연</option>
-                            <option value="김태언">김태언</option>
                         </select>
                         <button class="leave-add-btn" onclick="addLeave()">추가</button>
                     </div>
@@ -1499,6 +1498,15 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.14.2',
+                date: '2026-07-13',
+                title: '김태언 팀원 퇴사 반영',
+                changed: [
+                    '`TEAM_MEMBERS` 와 연차 등록 드롭다운(`#memberSelect`)에서 김태언 제외 — 신규 연차 등록 대상 및 연차 현황 패널 기본 행에서 빠짐',
+                    '기존에 등록된 김태언의 연차 기록은 그대로 보존 — 이벤트 데이터에 남아 있는 이름은 패널에 계속 집계·표시됨(명단 외 인원으로 분류돼 하단 정렬)',
+                ],
+            },
             {
                 version: '1.14.1',
                 date: '2026-07-13',
@@ -1950,7 +1958,7 @@
             return (y > 2026 || (y === 2026 && m >= 7)) ? COLOR_NAMES_MERGED : COLOR_NAMES_LEGACY;
         }
         const LEAVE_LABELS = { vacation: '휴가', am: '오전반차', pm: '오후반차', am2: '오전반반차', pm2: '오후반반차', official: '공가' };
-        const TEAM_MEMBERS = ['김해성', '원교현', '신주영', '최선빈', '권서연', '김태언'];
+        const TEAM_MEMBERS = ['김해성', '원교현', '신주영', '최선빈', '권서연'];
         const MAX_VISIBLE = 6;
 
         const firebaseConfig = {
