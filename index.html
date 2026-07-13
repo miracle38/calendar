@@ -1371,8 +1371,8 @@
                 <p id="calSubtitle">Quality Management Team · April 2026</p>
             </div>
             <div class="toolbar">
-                <button onclick="prevMonth()">◀ 이전</button>
-                <button onclick="nextMonth()">다음 ▶</button>
+                <button onclick="prevMonth()" title="이전 달 (단축키: ←)">◀ 이전</button>
+                <button onclick="nextMonth()" title="다음 달 (단축키: →)">다음 ▶</button>
                 <button class="btn-today" onclick="goToday()">오늘</button>
                 <button class="auth-only admin-only btn-memo" onclick="openMemo()">📝 메모</button>
                 <button class="auth-only admin-only btn-copy" onclick="copyAsHTML()" title="Gmail/노션/Word 등 표준 에디터용 (modern HTML)">일정표 복사</button>
@@ -1388,7 +1388,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.2</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.3</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1498,6 +1498,15 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.14.3',
+                date: '2026-07-13',
+                title: '방향키(←/→) 월 이동 단축키 추가',
+                added: [
+                    '**←/→ 방향키**로 이전/다음 달 이동 — [◀ 이전]/[다음 ▶] 버튼과 동일 동작. 버튼에 단축키 안내 툴팁도 추가',
+                    '입력창·메모/일정 편집영역에 포커스가 있거나 모달(일정/메모/로그인/버전)이 열려 있을 땐 동작하지 않아 캐럿 이동·타이핑을 방해하지 않음. 조합키(Alt/Ctrl/⌘/Shift)와 함께 누르면 브라우저 단축키 유지',
+                ],
+            },
             {
                 version: '1.14.2',
                 date: '2026-07-13',
@@ -3993,6 +4002,24 @@
             const memoOv = document.getElementById('memoOverlay');
             if (memoOv && memoOv.classList.contains('active')) { closeMemo(); return; }
             closeModal();
+        });
+
+        // 방향키(←/→)로 이전/다음 달 이동
+        document.addEventListener('keydown', function(e) {
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            // 조합키가 눌린 경우는 브라우저/OS 단축키이므로 건드리지 않음
+            if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+            // 입력 요소·편집영역에 포커스가 있으면 캐럿 이동을 방해하지 않음
+            const el = document.activeElement;
+            if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
+            // 모달/메모/로그인/버전 오버레이가 열려 있으면 무시
+            const overlayOpen = ['modalOverlay', 'memoOverlay', 'loginOverlay', 'versionOverlay'].some(id => {
+                const o = document.getElementById(id);
+                return o && o.classList.contains('active');
+            });
+            if (overlayOpen) return;
+            e.preventDefault();
+            if (e.key === 'ArrowLeft') prevMonth(); else nextMonth();
         });
 
         // 드래그 앤 드롭

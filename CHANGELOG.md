@@ -11,6 +11,12 @@
 
 ## [Unreleased]
 
+## [1.14.3] - 2026-07-13
+
+### Added
+- **방향키(←/→) 월 이동 단축키** — `←` 이전 달, `→` 다음 달. `[◀ 이전]`/`[다음 ▶]` 버튼과 동일하게 `prevMonth()`/`nextMonth()` 호출. 버튼에 단축키 안내 툴팁(`title`) 추가
+- 입력 요소(`input`/`textarea`/`select`/`contenteditable`)에 포커스가 있거나 모달·오버레이(`modalOverlay`/`memoOverlay`/`loginOverlay`/`versionOverlay`)가 `active` 일 땐 무시 — 캐럿 이동·타이핑 방해 방지. 조합키(Alt/Ctrl/Meta/Shift) 동반 시에도 무시해 브라우저 기본 단축키 보존
+
 ## [1.14.2] - 2026-07-13
 
 ### Changed
