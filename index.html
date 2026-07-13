@@ -1388,7 +1388,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.13.3</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.0</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1499,6 +1499,15 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.14.0',
+                date: '2026-07-13',
+                title: '지란지교소프트·데이터 합병 반영 — 회사 카테고리 표기 변경 (2026년 7월~)',
+                changed: [
+                    '2026년 7월 지란지교소프트+지란지교데이터 합병으로 **7월 일정표부터** 회사 카테고리 라벨 변경 — `지란지교소프트`→`오피스 사업부문`, `지란지교데이터`→`데이터 사업부문`. 색상 통계 패널 / 색상 픽커 / 일정 편집 색상 버튼에 일관 적용',
+                    '색상 인덱스(저장 값)는 그대로라 기존 일정 데이터에 영향 없음 — 라벨만 보고 있는 월에 따라 조회(`getColorNames`). 2026년 6월 이전 일정표는 기존 `지란지교소프트`/`지란지교데이터` 표기 유지',
+                ],
+            },
             {
                 version: '1.13.3',
                 date: '2026-06-05',
@@ -1921,7 +1930,16 @@
         let selectedDay = null;
         let selectedColor = 0;
         let selectedLeave = null;
-        const COLOR_NAMES = ['지란지교소프트', '지란지교데이터', 'DirectCloud', '기타', '배포일'];
+        // 회사 카테고리 라벨. 2026년 7월 지란지교소프트+지란지교데이터 합병으로
+        // 7월 일정표부터 '오피스 사업부문' / '데이터 사업부문'으로 표기 변경.
+        // 색상 인덱스(저장 값)는 그대로이며 라벨만 조회 시점(보고 있는 월)에 따라 달라짐.
+        const COLOR_NAMES_LEGACY = ['지란지교소프트', '지란지교데이터', 'DirectCloud', '기타', '배포일'];
+        const COLOR_NAMES_MERGED = ['오피스 사업부문', '데이터 사업부문', 'DirectCloud', '기타', '배포일'];
+        function getColorNames(year, month) {
+            const y = year != null ? year : currentYear;
+            const m = month != null ? month : currentMonth;
+            return (y > 2026 || (y === 2026 && m >= 7)) ? COLOR_NAMES_MERGED : COLOR_NAMES_LEGACY;
+        }
         const LEAVE_LABELS = { vacation: '휴가', am: '오전반차', pm: '오후반차', am2: '오전반반차', pm2: '오후반반차', official: '공가' };
         const TEAM_MEMBERS = ['김해성', '원교현', '신주영', '최선빈', '권서연', '김태언'];
         const MAX_VISIBLE = 6;
@@ -2768,7 +2786,7 @@
             for (let ci = 0; ci < 4; ci++) {
                 const companyProducts = byCompany[ci];
                 if (!companyProducts) continue;
-                const companyName = COLOR_NAMES[ci] || '회사' + ci;
+                const companyName = getColorNames()[ci] || '회사' + ci;
                 const dotColor = COMPANY_COLOR_HEX[ci] || '#666';
                 const barColor = COMPANY_BAR_HEX[ci] || '#999';
                 const companyTotal = Object.values(companyProducts).reduce((a, b) => a + b.count, 0);
@@ -2931,7 +2949,7 @@
 
         function renderColorPicker() {
             const cp = document.getElementById('colorPicker');
-            cp.innerHTML = COLOR_NAMES.map((name, i) =>
+            cp.innerHTML = getColorNames().map((name, i) =>
                 `<div class="color-dot cd${i} ${i === selectedColor ? 'selected' : ''}" onclick="pickColor(${i})">${name}</div>`
             ).join('');
         }
@@ -3362,7 +3380,7 @@
             let editColor = currentColor;
             const colorRow = document.createElement('div');
             colorRow.style.cssText = 'display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;';
-            COLOR_NAMES.forEach((name, ci) => {
+            getColorNames().forEach((name, ci) => {
                 const btn = document.createElement('span');
                 btn.textContent = name;
                 const colorValues = ['#1d4ed8','#15803d','#8b4513','#be185d','#eab308'];
