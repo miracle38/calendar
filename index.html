@@ -1416,7 +1416,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.5</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.6</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1531,6 +1531,15 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.14.6',
+                date: '2026-07-14',
+                title: '남은 이슈 개수 동기화 + 로그인 전용 노출',
+                changed: [
+                    'URL 동기화와 동일하게 **남은 이슈 개수도 같은 base(재확인N차 무시) 일정끼리 동기화** — 한 일정에 값을 넣거나 바꾸면 현재 월 + 다른 월의 같은 일정에 일괄 반영, 신규 일정은 미입력 시 자동 상속(`propagateRemainingForSameText` / `findRemainingForSameBase`)',
+                    '남은 이슈 배지(캘린더 태그 · 일정 목록 라벨)를 **로그인 사용자에게만 노출** — 비로그인 화면에서는 숨김',
+                ],
+            },
             {
                 version: '1.14.5',
                 date: '2026-07-14',
@@ -2765,9 +2774,9 @@
                     const plannedTitle = isPlanned ? ' (예정)' : '';
                     const progressTitle = progress > 0 ? ' · ' + progress + '%' : '';
                     const progressHtml = progress > 0 ? `<div class="tag-progress"><div class="tag-progress-bar"><div class="tag-progress-fill" style="width:${progress}%"></div></div><span class="tag-progress-pct">${progress}%</span></div>` : '';
-                    // 남은 이슈 배지 — 사용자가 일정에 직접 입력한 남은 이슈 개수(ev.remaining)를 표시
+                    // 남은 이슈 배지 — 직접 입력한 개수(ev.remaining). 로그인 사용자에게만 노출.
                     const remCount = typeof ev === 'object' && typeof ev.remaining === 'number' ? ev.remaining : 0;
-                    const remBadgeHtml = remCount > 0 ? `<span class="tag-remaining" title="남은 이슈 ${remCount}건">남은 ${remCount}</span>` : '';
+                    const remBadgeHtml = (isAuthView && remCount > 0) ? `<span class="tag-remaining" title="남은 이슈 ${remCount}건">남은 ${remCount}</span>` : '';
                     const hasUrl = isAuthView && typeof ev === 'object' && typeof ev.url === 'string' && ev.url;
                     const urlCls = hasUrl ? ' has-url' : '';
                     const urlBtnHtml = hasUrl ? `<a class="tag-url-btn" href="${escHtml(ev.url)}" target="_blank" rel="noopener noreferrer" title="새 탭으로 열기: ${escHtml(ev.url)}" onclick="event.stopPropagation()" draggable="false">🔗</a>` : '';
@@ -3159,7 +3168,7 @@
                 const plannedBadge = isPlanned ? '<span class="li-planned-badge">🔒 예정</span>' : '';
                 const progressHtml = (!isLeave && progress > 0) ? `<span class="li-progress-wrap"><span class="li-progress-bar"><span class="li-progress-fill${progress === 100 ? ' done' : ''}" style="width:${progress}%"></span></span><span class="li-progress-value">${progress}%</span></span>` : '';
                 const remaining = (!isLeave && typeof ev === 'object' && typeof ev.remaining === 'number') ? Math.max(0, ev.remaining) : 0;
-                const remHtml = remaining > 0 ? `<span class="li-remaining" title="남은 이슈 ${remaining}건">남은 ${remaining}</span>` : '';
+                const remHtml = (isAuthView && remaining > 0) ? `<span class="li-remaining" title="남은 이슈 ${remaining}건">남은 ${remaining}</span>` : '';
                 const hasUrl = !isLeave && isAuth && typeof ev === 'object' && typeof ev.url === 'string' && ev.url;
                 const urlBtnHtml = hasUrl ? `<a class="li-url-btn" href="${escHtml(ev.url)}" target="_blank" rel="noopener noreferrer" title="새 탭으로 열기: ${escHtml(ev.url)}" onclick="event.stopPropagation()">🔗</a>` : '';
                 const doneActive = st === 'done' ? ' active-done' : '';
@@ -3360,6 +3369,121 @@
             return null;
         }
 
+        // ── 남은 이슈(remaining) 동기화 — URL 과 동일하게 base(재확인N차 무시)가 같은 일정끼리 값 공유 ──
+        // remaining>0 이면 set, 0 이면 제거(delete). exceptKey 는 "day:idx" 로 자신 제외.
+        // "동일한 일정(base 동일) ⇒ 동일한 남은 이슈 개수" 불변식을 캘린더 전체에 유지.
+        function propagateRemainingForSameText(text, remaining, exceptKey) {
+            const base = baseEventText(text);
+            if (!base) return Promise.resolve();
+            // 1단계: 현재 월 (in-memory)
+            Object.keys(events).forEach(d => {
+                const arr = events[d];
+                if (!Array.isArray(arr)) return;
+                arr.forEach((ev, i) => {
+                    if (typeof ev !== 'object' || ev.leave) return;
+                    if ((d + ':' + i) === exceptKey) return;
+                    if (baseEventText(ev.text) !== base) return;
+                    if (remaining > 0) ev.remaining = remaining;
+                    else delete ev.remaining;
+                });
+            });
+            // 2단계: 다른 월들 (Firebase)
+            return propagateRemainingAcrossOtherMonths(base, remaining);
+        }
+
+        async function propagateRemainingAcrossOtherMonths(base, remaining) {
+            if (!db || !currentUser) return;
+            try {
+                const currentMonthKey = `${currentYear}_${String(currentMonth).padStart(2,'0')}`;
+                const snapshot = await db.ref('calendar').once('value');
+                const allMonths = snapshot.val() || {};
+                const updates = {};
+                Object.keys(allMonths).forEach(monthKey => {
+                    if (monthKey === currentMonthKey) return;
+                    if (!/^\d{4}_\d{2}$/.test(monthKey)) return;
+                    const raw = allMonths[monthKey];
+                    let monthEvents;
+                    try {
+                        if (typeof raw === 'string') monthEvents = raw ? JSON.parse(raw) : null;
+                        else if (raw && typeof raw === 'object') monthEvents = raw;
+                    } catch (_) { return; }
+                    if (!monthEvents || typeof monthEvents !== 'object') return;
+                    let changed = false;
+                    Object.keys(monthEvents).forEach(day => {
+                        const arr = monthEvents[day];
+                        if (!Array.isArray(arr)) return;
+                        arr.forEach(ev => {
+                            if (typeof ev !== 'object' || ev.leave) return;
+                            if (baseEventText(ev.text) !== base) return;
+                            const before = ev.remaining;
+                            if (remaining > 0) ev.remaining = remaining;
+                            else delete ev.remaining;
+                            if (ev.remaining !== before) changed = true;
+                        });
+                    });
+                    if (changed) updates['calendar/' + monthKey] = JSON.stringify(monthEvents);
+                });
+                const updatedMonths = Object.keys(updates).length;
+                if (updatedMonths > 0) {
+                    await db.ref().update(updates);
+                    console.log(`[남은이슈 전파] 다른 ${updatedMonths}개 월 업데이트 완료 (base="${base}")`);
+                }
+            } catch (e) {
+                console.warn('[남은이슈 전파] 다른 월 업데이트 실패:', e);
+            }
+        }
+
+        // 새 일정 추가 시 같은 base 의 기존 일정에 남은이슈 값이 있으면 반환 (현재 월 동기 탐색).
+        function findRemainingForSameBase(text) {
+            const base = baseEventText(text);
+            if (!base) return null;
+            for (const d of Object.keys(events)) {
+                const arr = events[d];
+                if (!Array.isArray(arr)) continue;
+                for (const ev of arr) {
+                    if (typeof ev !== 'object' || ev.leave) continue;
+                    if (typeof ev.remaining !== 'number' || ev.remaining <= 0) continue;
+                    if (baseEventText(ev.text) === base) return ev.remaining;
+                }
+            }
+            return null;
+        }
+
+        // 같은 base 의 일정이 다른 월에 있고 남은이슈 값이 있으면 반환 (비동기 Firebase 탐색).
+        async function findRemainingForSameBaseInOtherMonths(text) {
+            if (!db || !currentUser) return null;
+            const base = baseEventText(text);
+            if (!base) return null;
+            try {
+                const currentMonthKey = `${currentYear}_${String(currentMonth).padStart(2,'0')}`;
+                const snapshot = await db.ref('calendar').once('value');
+                const allMonths = snapshot.val() || {};
+                for (const monthKey of Object.keys(allMonths)) {
+                    if (monthKey === currentMonthKey) continue;
+                    if (!/^\d{4}_\d{2}$/.test(monthKey)) continue;
+                    const raw = allMonths[monthKey];
+                    let monthEvents;
+                    try {
+                        if (typeof raw === 'string') monthEvents = raw ? JSON.parse(raw) : null;
+                        else if (raw && typeof raw === 'object') monthEvents = raw;
+                    } catch (_) { continue; }
+                    if (!monthEvents || typeof monthEvents !== 'object') continue;
+                    for (const day of Object.keys(monthEvents)) {
+                        const arr = monthEvents[day];
+                        if (!Array.isArray(arr)) continue;
+                        for (const ev of arr) {
+                            if (typeof ev !== 'object' || ev.leave) continue;
+                            if (typeof ev.remaining !== 'number' || ev.remaining <= 0) continue;
+                            if (baseEventText(ev.text) === base) return ev.remaining;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('[남은이슈 상속 검색] 실패:', e);
+            }
+            return null;
+        }
+
         // URL 정규화: 빈 값/공백은 null. http(s):// 없으면 https:// 자동 부여.
         // javascript: / data: / vbscript: 스킴은 보안상 거부.
         function normalizeEventUrl(raw) {
@@ -3385,12 +3509,17 @@
             const progNum = document.getElementById('eventProgressNum');
             const progress = progRange ? parseInt(progRange.value, 10) || 0 : 0;
             const remInput = document.getElementById('eventRemaining');
-            const remaining = remInput ? Math.max(0, parseInt(remInput.value, 10) || 0) : 0;
+            let remaining = remInput ? Math.max(0, parseInt(remInput.value, 10) || 0) : 0;
             const urlInput = document.getElementById('eventUrl');
             let url = normalizeEventUrl(urlInput && urlInput.value);
             if (!url) {
                 // URL 미입력 시 현재 월의 같은 base 일정에 URL 이 있으면 자동 상속
                 url = findUrlForSameBase(text);
+            }
+            if (!remaining) {
+                // 남은 이슈 미입력 시 현재 월의 같은 base 일정 값이 있으면 자동 상속
+                const inherited = findRemainingForSameBase(text);
+                if (inherited) remaining = inherited;
             }
             const newEv = { text, color: selectedColor };
             if (planned) newEv.planned = true;
@@ -3401,7 +3530,22 @@
             const newIdx = events[selectedDay].length - 1;
             const dayForSave = selectedDay;
             if (url) propagateUrlForSameText(text, url, dayForSave + ':' + newIdx);
+            if (remaining > 0) propagateRemainingForSameText(text, remaining, dayForSave + ':' + newIdx);
             saveEvents();
+            // 남은 이슈 미입력이고 현재 월에도 없으면 다른 월에서 비동기 검색 → 발견 시 상속 적용
+            if (!remaining) {
+                findRemainingForSameBaseInOtherMonths(text).then(found => {
+                    if (!found) return;
+                    const stillThere = events[dayForSave] && events[dayForSave][newIdx];
+                    if (stillThere && stillThere.text === text && !stillThere.remaining) {
+                        stillThere.remaining = found;
+                        propagateRemainingForSameText(text, found, dayForSave + ':' + newIdx);
+                        saveEvents();
+                        renderCalendar();
+                        if (selectedDay !== null) renderEventList();
+                    }
+                });
+            }
             // URL 미입력이고 현재 월에도 없으면 다른 월에서 비동기 검색 → 발견 시 상속 적용
             if (!url) {
                 findUrlForSameBaseInOtherMonths(text).then(foundUrl => {
@@ -3594,6 +3738,7 @@
                 const newText = textarea.value.trim();
                 const newUrl = normalizeEventUrl(urlInput.value);
                 const prevUrl = typeof ev === 'object' ? (ev.url || null) : null;
+                const prevRemaining = (typeof ev === 'object' && typeof ev.remaining === 'number') ? ev.remaining : 0;
                 if (newText && typeof ev === 'object') {
                     ev.text = newText;
                     ev.color = editColor;
@@ -3611,6 +3756,9 @@
                 }
                 if (newText && (newUrl || prevUrl) && newUrl !== prevUrl) {
                     propagateUrlForSameText(newText, newUrl, selectedDay + ':' + index);
+                }
+                if (newText && editRemaining !== prevRemaining) {
+                    propagateRemainingForSameText(newText, editRemaining, selectedDay + ':' + index);
                 }
                 saveEvents();
                 renderEventList();

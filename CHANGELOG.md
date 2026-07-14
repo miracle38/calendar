@@ -11,6 +11,12 @@
 
 ## [Unreleased]
 
+## [1.14.6] - 2026-07-14
+
+### Changed
+- **남은 이슈 개수 동기화** — URL 동기화와 동일하게 같은 `baseEventText`(재확인N차 무시) 일정끼리 `remaining` 값 공유. 한 일정에 값 설정/변경 시 현재 월(in-memory) + 다른 월(Firebase)의 같은 일정에 일괄 전파, 신규 일정은 미입력 시 같은 base 값 자동 상속. 신규 함수 `propagateRemainingForSameText` / `propagateRemainingAcrossOtherMonths` / `findRemainingForSameBase` / `findRemainingForSameBaseInOtherMonths`
+- **남은 이슈 배지 로그인 전용 노출** — 캘린더 일정 태그와 모달 일정 목록의 `남은 N` 표시를 `isAuthView`(로그인) 조건으로 게이팅. 비로그인 화면에서는 숨김
+
 ## [1.14.5] - 2026-07-14
 
 ### Changed
