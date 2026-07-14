@@ -823,6 +823,25 @@
         }
         .progress-edit-row .prog-preset button:hover { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
 
+        /* 남은 이슈 직접 입력 행 */
+        .remaining-edit-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 4px 0; flex-wrap: wrap;
+        }
+        .remaining-edit-row label { font-size: 0.85em; font-weight: 600; color: #b45309; }
+        .remaining-edit-row input[type=number] {
+            width: 72px; padding: 5px 8px; border: 1px solid #cbd5e1;
+            border-radius: 6px; font-family: inherit; font-size: 0.9em;
+            text-align: right; accent-color: #b45309;
+        }
+        .remaining-edit-row input[type=number]:focus { border-color: #b45309; outline: none; }
+        .remaining-edit-row .rem-hint { font-size: 0.78em; color: #94a3b8; }
+        .event-list li .li-remaining {
+            font-size: 0.72em; font-weight: 800; color: #b45309;
+            background: #fff7ed; border: 1px solid rgba(180,83,9,0.35);
+            border-radius: 8px; padding: 1px 7px; flex-shrink: 0; white-space: nowrap;
+        }
+
         .event-delete {
             background: none; border: none; color: #e74c3c;
             font-size: 1.1em; cursor: pointer; opacity: 0.5; padding: 2px 6px;
@@ -1397,7 +1416,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.4</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.5</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1444,6 +1463,11 @@
                             <button type="button" data-p="75">75</button>
                             <button type="button" data-p="100">100</button>
                         </div>
+                    </div>
+                    <div class="remaining-edit-row">
+                        <label for="eventRemaining">남은 이슈</label>
+                        <input type="number" id="eventRemaining" min="0" max="999" step="1" placeholder="0" inputmode="numeric">
+                        <span class="rem-hint">개 · 0이면 배지 없음</span>
                     </div>
                     <div class="event-form-row">
                         <label class="planned-check" title="로그인 사용자만 볼 수 있는 비공개 예정 항목">
@@ -1507,6 +1531,15 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.14.5',
+                date: '2026-07-14',
+                title: '남은 이슈 개수를 일정마다 직접 입력하도록 변경',
+                changed: [
+                    '`남은 N` 배지를 자동 집계(완료/최종 기준)에서 **일정별 직접 입력값**(`ev.remaining`)으로 변경 — 일정 추가/편집 폼에 `남은 이슈` 숫자 입력 추가. 0이면 배지 없음',
+                    '일정 목록(모달)에도 현재 남은 개수를 `남은 N` 라벨로 표시. 값 미입력 시 필드는 저장되지 않아 기존 일정에 영향 없음',
+                ],
+            },
             {
                 version: '1.14.4',
                 date: '2026-07-14',
@@ -2679,21 +2712,6 @@
             const today = new Date();
             const isThisMonth = (today.getFullYear() === currentYear && today.getMonth() + 1 === currentMonth);
 
-            // 제품(프로젝트)별 '남은 이슈' 개수 — 완료/최종이 아닌 일정을 현재 월 전체에서 집계.
-            // 화면에 보이는 일정과 개수가 어긋나지 않도록 아래 렌더링과 동일한 가시성 필터를 적용.
-            const isAuthViewNow = !!currentUser || localStorage.getItem('loggedIn') === 'true';
-            const remainingByProduct = {};
-            for (let dd = 1; dd <= totalDays; dd++) {
-                (events[dd] || []).forEach(ev => {
-                    if (typeof ev !== 'object' || ev.leave) return;
-                    if (!isAuthViewNow && ev.planned) return;
-                    if (!isAuthViewNow && ev.color === 4) return;
-                    if (ev.status === 'done' || ev.status === 'final') return;
-                    const p = extractProductName(ev.text);
-                    remainingByProduct[p] = (remainingByProduct[p] || 0) + 1;
-                });
-            }
-
             for (let i = 0; i < startOffset; i++) {
                 c.innerHTML += '<div class="day empty"></div>';
             }
@@ -2747,10 +2765,9 @@
                     const plannedTitle = isPlanned ? ' (예정)' : '';
                     const progressTitle = progress > 0 ? ' · ' + progress + '%' : '';
                     const progressHtml = progress > 0 ? `<div class="tag-progress"><div class="tag-progress-bar"><div class="tag-progress-fill" style="width:${progress}%"></div></div><span class="tag-progress-pct">${progress}%</span></div>` : '';
-                    // 남은 이슈 배지 — 이 일정이 미완료(완료/최종 아님)일 때, 같은 제품(프로젝트)의 남은 이슈 개수 표시
-                    const isRemaining = st !== 'done' && st !== 'final';
-                    const remCount = isRemaining ? (remainingByProduct[extractProductName(text)] || 0) : 0;
-                    const remBadgeHtml = remCount > 0 ? `<span class="tag-remaining" title="${escHtml(extractProductName(text))} — 남은 이슈 ${remCount}건 (완료/최종 제외)">남은 ${remCount}</span>` : '';
+                    // 남은 이슈 배지 — 사용자가 일정에 직접 입력한 남은 이슈 개수(ev.remaining)를 표시
+                    const remCount = typeof ev === 'object' && typeof ev.remaining === 'number' ? ev.remaining : 0;
+                    const remBadgeHtml = remCount > 0 ? `<span class="tag-remaining" title="남은 이슈 ${remCount}건">남은 ${remCount}</span>` : '';
                     const hasUrl = isAuthView && typeof ev === 'object' && typeof ev.url === 'string' && ev.url;
                     const urlCls = hasUrl ? ' has-url' : '';
                     const urlBtnHtml = hasUrl ? `<a class="tag-url-btn" href="${escHtml(ev.url)}" target="_blank" rel="noopener noreferrer" title="새 탭으로 열기: ${escHtml(ev.url)}" onclick="event.stopPropagation()" draggable="false">🔗</a>` : '';
@@ -3080,6 +3097,8 @@
             if (progNum) progNum.textContent = '0%';
             const urlInput = document.getElementById('eventUrl');
             if (urlInput) urlInput.value = '';
+            const remInput = document.getElementById('eventRemaining');
+            if (remInput) remInput.value = '';
             document.querySelectorAll('.leave-btn').forEach(btn => { btn.classList.remove('on'); btn.classList.add('off'); });
             document.getElementById('leaveForm').style.display = 'none';
             document.getElementById('memberSelect').value = '';
@@ -3139,6 +3158,8 @@
                 const stLabel = st ? `<span class="status-label ${st}">${st === 'done' ? '완료' : '최종'}</span>` : '';
                 const plannedBadge = isPlanned ? '<span class="li-planned-badge">🔒 예정</span>' : '';
                 const progressHtml = (!isLeave && progress > 0) ? `<span class="li-progress-wrap"><span class="li-progress-bar"><span class="li-progress-fill${progress === 100 ? ' done' : ''}" style="width:${progress}%"></span></span><span class="li-progress-value">${progress}%</span></span>` : '';
+                const remaining = (!isLeave && typeof ev === 'object' && typeof ev.remaining === 'number') ? Math.max(0, ev.remaining) : 0;
+                const remHtml = remaining > 0 ? `<span class="li-remaining" title="남은 이슈 ${remaining}건">남은 ${remaining}</span>` : '';
                 const hasUrl = !isLeave && isAuth && typeof ev === 'object' && typeof ev.url === 'string' && ev.url;
                 const urlBtnHtml = hasUrl ? `<a class="li-url-btn" href="${escHtml(ev.url)}" target="_blank" rel="noopener noreferrer" title="새 탭으로 열기: ${escHtml(ev.url)}" onclick="event.stopPropagation()">🔗</a>` : '';
                 const doneActive = st === 'done' ? ' active-done' : '';
@@ -3163,7 +3184,7 @@
                 } else {
                     displayText = escHtml(text);
                 }
-                return `<li${rowCls} data-idx="${i}">${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${displayText}</span>${urlBtnHtml}${progressHtml}${plannedBadge}${stLabel}${statusBtns}${deleteBtn}</li>`;
+                return `<li${rowCls} data-idx="${i}">${colorDot}${isLeave ? `<span class="leave-type-wrap" ${leaveTypeClick}>${leaveLabel}</span>` : ''}<span class="${nameClass}" ${editClick}>${displayText}</span>${urlBtnHtml}${progressHtml}${remHtml}${plannedBadge}${stLabel}${statusBtns}${deleteBtn}</li>`;
             }
 
             const scheduleItems = [];
@@ -3363,6 +3384,8 @@
             const progRange = document.getElementById('eventProgress');
             const progNum = document.getElementById('eventProgressNum');
             const progress = progRange ? parseInt(progRange.value, 10) || 0 : 0;
+            const remInput = document.getElementById('eventRemaining');
+            const remaining = remInput ? Math.max(0, parseInt(remInput.value, 10) || 0) : 0;
             const urlInput = document.getElementById('eventUrl');
             let url = normalizeEventUrl(urlInput && urlInput.value);
             if (!url) {
@@ -3372,6 +3395,7 @@
             const newEv = { text, color: selectedColor };
             if (planned) newEv.planned = true;
             if (progress > 0) newEv.progress = progress;
+            if (remaining > 0) newEv.remaining = remaining;
             if (url) newEv.url = url;
             events[selectedDay].push(newEv);
             const newIdx = events[selectedDay].length - 1;
@@ -3532,6 +3556,29 @@
             progRow.appendChild(presets);
             editWrap.appendChild(progRow);
 
+            // 남은 이슈 직접 입력
+            const currentRemaining = typeof ev === 'object' && typeof ev.remaining === 'number' ? Math.max(0, ev.remaining) : 0;
+            let editRemaining = currentRemaining;
+            const remRow = document.createElement('div');
+            remRow.className = 'remaining-edit-row';
+            const remLabel = document.createElement('label');
+            remLabel.textContent = '남은 이슈';
+            const remInput = document.createElement('input');
+            remInput.type = 'number';
+            remInput.min = '0'; remInput.max = '999'; remInput.step = '1';
+            remInput.placeholder = '0';
+            remInput.value = editRemaining > 0 ? String(editRemaining) : '';
+            remInput.addEventListener('input', function() {
+                editRemaining = Math.max(0, parseInt(remInput.value, 10) || 0);
+            });
+            const remHint = document.createElement('span');
+            remHint.className = 'rem-hint';
+            remHint.textContent = '개 · 0이면 배지 없음';
+            remRow.appendChild(remLabel);
+            remRow.appendChild(remInput);
+            remRow.appendChild(remHint);
+            editWrap.appendChild(remRow);
+
             span.replaceWith(editWrap);
             textarea.focus();
             // 최하단 일정을 편집할 때 확장된 영역이 스크롤 영역 밖으로 밀려
@@ -3552,11 +3599,13 @@
                     ev.color = editColor;
                     if (editPlanned) ev.planned = true; else delete ev.planned;
                     if (editProgress > 0) ev.progress = editProgress; else delete ev.progress;
+                    if (editRemaining > 0) ev.remaining = editRemaining; else delete ev.remaining;
                     if (newUrl) ev.url = newUrl; else delete ev.url;
                 } else if (newText) {
                     const next = { text: newText, color: editColor };
                     if (editPlanned) next.planned = true;
                     if (editProgress > 0) next.progress = editProgress;
+                    if (editRemaining > 0) next.remaining = editRemaining;
                     if (newUrl) next.url = newUrl;
                     events[selectedDay][index] = next;
                 }
