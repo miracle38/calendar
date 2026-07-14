@@ -843,9 +843,10 @@
         .remaining-edit-row input[type=number]:focus { border-color: #b45309; outline: none; }
         .remaining-edit-row .rem-hint { font-size: 0.78em; color: #94a3b8; }
         .event-list li .li-remaining {
-            font-size: 0.72em; font-weight: 800; color: #b45309;
+            font-size: 0.6em; font-weight: 700; color: #b45309;
             background: #fff7ed; border: 1px solid rgba(180,83,9,0.35);
-            border-radius: 8px; padding: 1px 7px; flex-shrink: 0; white-space: nowrap;
+            border-radius: 6px; padding: 0 4px; flex: 0 0 auto; white-space: nowrap;
+            line-height: 1.5;
         }
 
         .event-delete {
@@ -1422,7 +1423,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.8</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.9</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1537,6 +1538,14 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.14.9',
+                date: '2026-07-14',
+                title: '일정 상세보기 남은 이슈 배지 컴팩트하게',
+                fixed: [
+                    '일정 상세보기(모달 목록)의 `남은 N` 배지가 가로로 꽉 차 길게 늘어나던 문제 수정 — `.event-list li span { flex:1 }` 공통 규칙에 걸려 배지 span 이 늘어나던 것을 `flex:0 0 auto` 로 고정. 폰트도 축소해 콘텐츠 폭(약 38px)만 차지',
+                ],
+            },
             {
                 version: '1.14.8',
                 date: '2026-07-14',
