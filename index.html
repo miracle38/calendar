@@ -758,12 +758,12 @@
             background: rgba(255,255,255,0.92); color: #b45309;
             box-shadow: 0 0 0 1px rgba(180,83,9,0.35) inset;
         }
-        /* 완료/최종 배지가 함께 있을 때: 남은 배지를 아랫줄로 (가로 밀림 방지) */
-        .day .event-tag.has-below { flex-wrap: wrap; }
-        .day .event-tag .tag-remaining-row {
-            flex-basis: 100%; width: 100%; display: flex; margin-top: 3px;
+        /* 완료/최종 + 남은 배지: 우측에 세로로 쌓아 한 칸만 차지 (가로 밀림 방지) */
+        .day .event-tag .tag-badge-stack {
+            display: flex; flex-direction: column; align-items: flex-end;
+            gap: 2px; flex-shrink: 0;
         }
-        .day .event-tag .tag-remaining.below { margin-left: 0; }
+        .day .event-tag .tag-badge-stack .tag-status { margin-left: 4px; }
 
         /* 진행률 게이지 */
         .day .event-tag { position: relative; padding-bottom: 10px; }
@@ -1422,7 +1422,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.7</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.8</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1537,6 +1537,14 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.14.8',
+                date: '2026-07-14',
+                title: '완료+남은 배지를 우측 세로 스택으로 (줄바꿈 대신)',
+                changed: [
+                    '완료/최종 + 남은 배지를 태그 전체 줄바꿈(v1.14.7) 대신 **우측에 [완료] 위 / [남은] 아래로 세로 스택**(`tag-badge-stack`)으로 표시 — 한 칸만 차지해 일정 텍스트가 밀리지 않고, 텍스트는 같은 줄에 유지',
+                ],
+            },
             {
                 version: '1.14.7',
                 date: '2026-07-14',
@@ -2789,19 +2797,17 @@
                     const progressTitle = progress > 0 ? ' · ' + progress + '%' : '';
                     const progressHtml = progress > 0 ? `<div class="tag-progress"><div class="tag-progress-bar"><div class="tag-progress-fill" style="width:${progress}%"></div></div><span class="tag-progress-pct">${progress}%</span></div>` : '';
                     // 남은 이슈 배지 — 직접 입력한 개수(ev.remaining). 로그인 사용자에게만 노출.
-                    // 완료/최종 배지가 함께 있으면 가로가 밀리므로 남은 배지를 아랫줄로 내림.
+                    // 완료/최종 배지가 함께 있으면 우측에 [완료]/[남은]을 세로로 쌓아 한 칸만 차지 (가로 밀림 방지).
                     const remCount = typeof ev === 'object' && typeof ev.remaining === 'number' ? ev.remaining : 0;
                     const showRem = isAuthView && remCount > 0;
-                    const remBelow = showRem && !!stHtml;
-                    const remBadgeHtml = showRem
-                        ? (remBelow
-                            ? `<span class="tag-remaining-row"><span class="tag-remaining below" title="남은 이슈 ${remCount}건">남은 ${remCount}</span></span>`
-                            : `<span class="tag-remaining" title="남은 이슈 ${remCount}건">남은 ${remCount}</span>`)
-                        : '';
+                    const remSpan = showRem ? `<span class="tag-remaining" title="남은 이슈 ${remCount}건">남은 ${remCount}</span>` : '';
+                    const rightBadges = (stHtml && remSpan)
+                        ? `<span class="tag-badge-stack">${stHtml}${remSpan}</span>`
+                        : `${stHtml}${remSpan}`;
                     const hasUrl = isAuthView && typeof ev === 'object' && typeof ev.url === 'string' && ev.url;
                     const urlCls = hasUrl ? ' has-url' : '';
                     const urlBtnHtml = hasUrl ? `<a class="tag-url-btn" href="${escHtml(ev.url)}" target="_blank" rel="noopener noreferrer" title="새 탭으로 열기: ${escHtml(ev.url)}" onclick="event.stopPropagation()" draggable="false">🔗</a>` : '';
-                    evHtml += `<div class="event-tag c${ci % 5}${plannedCls}${urlCls}${remBelow ? ' has-below' : ''}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${remBadgeHtml}${progressHtml}${urlBtnHtml}</div>`;
+                    evHtml += `<div class="event-tag c${ci % 5}${plannedCls}${urlCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${rightBadges}${progressHtml}${urlBtnHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
