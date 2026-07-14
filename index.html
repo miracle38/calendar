@@ -750,6 +750,15 @@
         .tag-status.done { background: #fbbf24; color: #333; }
         .tag-status.final { background: #f43f5e; color: #fff; }
 
+        /* 남은 이슈 배지 — 해당 제품(프로젝트)의 미완료(완료/최종 아님) 일정 개수 */
+        .day .event-tag .tag-remaining {
+            font-size: 0.72em; padding: 1px 5px;
+            border-radius: 8px; margin-left: 4px; font-weight: 800;
+            flex-shrink: 0; white-space: nowrap;
+            background: rgba(255,255,255,0.92); color: #b45309;
+            box-shadow: 0 0 0 1px rgba(180,83,9,0.35) inset;
+        }
+
         /* 진행률 게이지 */
         .day .event-tag { position: relative; padding-bottom: 10px; }
         .day .event-tag .tag-progress {
@@ -1388,7 +1397,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.3</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.4</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1498,6 +1507,15 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.14.4',
+                date: '2026-07-14',
+                title: '일정 태그에 프로젝트별 남은 이슈 배지 표시',
+                added: [
+                    '각 일정 태그에 **[남은 N]** 배지 추가 — 같은 제품(프로젝트, 일정 첫 줄 기준)에서 아직 완료/최종이 아닌 일정 개수를 현재 월 전체에서 집계해 표시. 완료/최종 처리하면 카운트에서 빠지고 배지도 사라짐',
+                    '이미 있는 `완료`/`최종` 상태(`toggleStatus`)를 그대로 재사용 — 새 데이터 필드 없이 기존 일정에 영향 없음. 비로그인 사용자에게 숨겨지는 예정(🔒)·배포일(color 4) 일정은 배지 집계에서도 동일하게 제외',
+                ],
+            },
             {
                 version: '1.14.3',
                 date: '2026-07-13',
@@ -2661,6 +2679,21 @@
             const today = new Date();
             const isThisMonth = (today.getFullYear() === currentYear && today.getMonth() + 1 === currentMonth);
 
+            // 제품(프로젝트)별 '남은 이슈' 개수 — 완료/최종이 아닌 일정을 현재 월 전체에서 집계.
+            // 화면에 보이는 일정과 개수가 어긋나지 않도록 아래 렌더링과 동일한 가시성 필터를 적용.
+            const isAuthViewNow = !!currentUser || localStorage.getItem('loggedIn') === 'true';
+            const remainingByProduct = {};
+            for (let dd = 1; dd <= totalDays; dd++) {
+                (events[dd] || []).forEach(ev => {
+                    if (typeof ev !== 'object' || ev.leave) return;
+                    if (!isAuthViewNow && ev.planned) return;
+                    if (!isAuthViewNow && ev.color === 4) return;
+                    if (ev.status === 'done' || ev.status === 'final') return;
+                    const p = extractProductName(ev.text);
+                    remainingByProduct[p] = (remainingByProduct[p] || 0) + 1;
+                });
+            }
+
             for (let i = 0; i < startOffset; i++) {
                 c.innerHTML += '<div class="day empty"></div>';
             }
@@ -2714,10 +2747,14 @@
                     const plannedTitle = isPlanned ? ' (예정)' : '';
                     const progressTitle = progress > 0 ? ' · ' + progress + '%' : '';
                     const progressHtml = progress > 0 ? `<div class="tag-progress"><div class="tag-progress-bar"><div class="tag-progress-fill" style="width:${progress}%"></div></div><span class="tag-progress-pct">${progress}%</span></div>` : '';
+                    // 남은 이슈 배지 — 이 일정이 미완료(완료/최종 아님)일 때, 같은 제품(프로젝트)의 남은 이슈 개수 표시
+                    const isRemaining = st !== 'done' && st !== 'final';
+                    const remCount = isRemaining ? (remainingByProduct[extractProductName(text)] || 0) : 0;
+                    const remBadgeHtml = remCount > 0 ? `<span class="tag-remaining" title="${escHtml(extractProductName(text))} — 남은 이슈 ${remCount}건 (완료/최종 제외)">남은 ${remCount}</span>` : '';
                     const hasUrl = isAuthView && typeof ev === 'object' && typeof ev.url === 'string' && ev.url;
                     const urlCls = hasUrl ? ' has-url' : '';
                     const urlBtnHtml = hasUrl ? `<a class="tag-url-btn" href="${escHtml(ev.url)}" target="_blank" rel="noopener noreferrer" title="새 탭으로 열기: ${escHtml(ev.url)}" onclick="event.stopPropagation()" draggable="false">🔗</a>` : '';
-                    evHtml += `<div class="event-tag c${ci % 5}${plannedCls}${urlCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${progressHtml}${urlBtnHtml}</div>`;
+                    evHtml += `<div class="event-tag c${ci % 5}${plannedCls}${urlCls}" ${canDrag} data-from="${d}" data-idx="${evIdx}" title="${escHtml(text)}${plannedTitle}${progressTitle}"><span class="tag-text">${escHtml(text)}</span>${stHtml}${remBadgeHtml}${progressHtml}${urlBtnHtml}</div>`;
                 });
                 if (normal.length > MAX_VISIBLE) {
                     evHtml += `<div class="event-more-tag">+${normal.length - MAX_VISIBLE}개 더</div>`;
