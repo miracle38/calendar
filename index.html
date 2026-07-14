@@ -1423,7 +1423,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.9</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.10</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1538,6 +1538,14 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.14.10',
+                date: '2026-07-14',
+                title: '일정표 남은 이슈 배지는 숫자만 표시',
+                changed: [
+                    '일정표(캘린더 태그)의 남은 이슈 배지에서 `남은` 문구를 빼고 **숫자만** 표시 — 좁은 태그에서 길어지는 문제 완화. 툴팁(hover)엔 `남은 이슈 N건` 그대로 유지. 일정 상세보기(모달 목록)는 기존대로 `남은 N` 유지',
+                ],
+            },
             {
                 version: '1.14.9',
                 date: '2026-07-14',
@@ -2809,7 +2817,7 @@
                     // 완료/최종 배지가 함께 있으면 우측에 [완료]/[남은]을 세로로 쌓아 한 칸만 차지 (가로 밀림 방지).
                     const remCount = typeof ev === 'object' && typeof ev.remaining === 'number' ? ev.remaining : 0;
                     const showRem = isAuthView && remCount > 0;
-                    const remSpan = showRem ? `<span class="tag-remaining" title="남은 이슈 ${remCount}건">남은 ${remCount}</span>` : '';
+                    const remSpan = showRem ? `<span class="tag-remaining" title="남은 이슈 ${remCount}건">${remCount}</span>` : '';
                     const rightBadges = (stHtml && remSpan)
                         ? `<span class="tag-badge-stack">${stHtml}${remSpan}</span>`
                         : `${stHtml}${remSpan}`;
