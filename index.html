@@ -1423,7 +1423,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.11</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.14.12</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1538,6 +1538,15 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.14.12',
+                date: '2026-07-19',
+                title: '로그인 실패 사유 한글화',
+                fixed: [
+                    '로그인 실패 시 Firebase 영어 오류 대신 한글 사유 표시 (예: "이메일 또는 비밀번호가 올바르지 않습니다.", "등록되지 않은 이메일입니다." 등) — 이메일·Google 로그인 공통',
+                    'Google 로그인 팝업을 사용자가 닫은 경우는 오류 알림 없이 무시',
+                ],
+            },
             {
                 version: '1.14.11',
                 date: '2026-07-14',
@@ -2168,6 +2177,30 @@
             document.getElementById('loginOverlay').classList.remove('active');
         }
 
+        // Firebase 인증 오류 코드 → 한글 사유
+        function authErrorKo(error) {
+            var code = (error && error.code) || '';
+            var map = {
+                'auth/invalid-email': '이메일 형식이 올바르지 않습니다.',
+                'auth/missing-email': '이메일을 입력하세요.',
+                'auth/missing-password': '비밀번호를 입력하세요.',
+                'auth/user-not-found': '등록되지 않은 이메일입니다.',
+                'auth/wrong-password': '비밀번호가 올바르지 않습니다.',
+                'auth/invalid-credential': '이메일 또는 비밀번호가 올바르지 않습니다.',
+                'auth/invalid-login-credentials': '이메일 또는 비밀번호가 올바르지 않습니다.',
+                'auth/user-disabled': '사용이 정지된 계정입니다.',
+                'auth/too-many-requests': '로그인 시도가 너무 많습니다. 잠시 후 다시 시도하세요.',
+                'auth/network-request-failed': '네트워크 오류입니다. 연결을 확인하세요.',
+                'auth/popup-closed-by-user': '로그인 창이 닫혔습니다.',
+                'auth/popup-blocked': '팝업이 차단되었습니다. 팝업을 허용한 뒤 다시 시도하세요.',
+                'auth/cancelled-popup-request': '로그인이 취소되었습니다.',
+                'auth/account-exists-with-different-credential': '다른 로그인 방식으로 이미 가입된 이메일입니다.',
+                'auth/operation-not-allowed': '허용되지 않은 로그인 방식입니다.',
+                'auth/unauthorized-domain': '허용되지 않은 도메인에서의 로그인입니다.',
+            };
+            return map[code] || '로그인에 실패했습니다. 잠시 후 다시 시도하세요.';
+        }
+
         function doEmailLogin() {
             var email = document.getElementById('loginEmail').value.trim();
             var password = document.getElementById('loginPassword').value;
@@ -2175,7 +2208,7 @@
             firebase.auth().signInWithEmailAndPassword(email, password).then(function() {
                 closeLoginModal();
             }).catch(function(error) {
-                alert('로그인 실패: ' + error.message);
+                alert('로그인 실패: ' + authErrorKo(error));
             });
         }
 
@@ -2184,7 +2217,8 @@
             firebase.auth().signInWithPopup(provider).then(function() {
                 closeLoginModal();
             }).catch(function(error) {
-                alert('Google 로그인 실패: ' + error.message);
+                if (error && (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request')) return;
+                alert('Google 로그인 실패: ' + authErrorKo(error));
             });
         }
 
