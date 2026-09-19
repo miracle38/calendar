@@ -3,6 +3,7 @@ test-results/
 test-results-html/
 package-lock.json
 *.zip
+!calendar-extension.zip
 scripts/
 jiransoft_CI_jpg/
 jpg/
