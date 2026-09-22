@@ -1740,7 +1740,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.18.0</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.18.1</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1855,6 +1855,14 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.18.1',
+                date: '2026-09-22',
+                title: '우측 플로팅 버튼 팝업 상호 배타 처리',
+                fixed: [
+                    '📊 월간 연차 현황 / 📈 월별 제품 통계 팝업이 동시에 열려 겹치던 문제 — 하나를 열면 다른 하나는 자동으로 닫히도록 수정',
+                ],
+            },
             {
                 version: '1.18.0',
                 date: '2026-09-19',
@@ -3420,17 +3428,29 @@
             const panel = document.getElementById('leavePanel');
             const fab = document.getElementById('leaveFab');
             const nowActive = !panel.classList.contains('active');
+            if (nowActive) closeStatsPanel();
             panel.classList.toggle('active', nowActive);
             fab.classList.toggle('active', nowActive);
+        }
+
+        function closeLeavePanel() {
+            document.getElementById('leavePanel').classList.remove('active');
+            document.getElementById('leaveFab').classList.remove('active');
         }
 
         function toggleStatsPanel() {
             const panel = document.getElementById('statsPanel');
             const fab = document.getElementById('statsFab');
             const nowActive = !panel.classList.contains('active');
+            if (nowActive) closeLeavePanel();
             panel.classList.toggle('active', nowActive);
             fab.classList.toggle('active', nowActive);
             if (nowActive) renderStatsSummary();
+        }
+
+        function closeStatsPanel() {
+            document.getElementById('statsPanel').classList.remove('active');
+            document.getElementById('statsFab').classList.remove('active');
         }
 
         // 일정 텍스트에서 제품 그룹 키 추출 — 첫 줄 전체를 사용. "재확인N차" 의 N차 카운터만 통합.
