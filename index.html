@@ -1538,6 +1538,93 @@
             .day:hover { background: none !important; }
             .leave-fab, .leave-panel { display: none !important; }
         }
+        /* 회식비 사용 내역 (최고 관리자 전용) */
+        .dinner-box { max-width: 1180px; }
+        .dinner-toolbar {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+        }
+        .dinner-toolbar .dq-label { font-weight: 700; font-size: 1.05em; color: #1e3c72; min-width: 118px; text-align: center; }
+        .dinner-btn {
+            border: 1px solid #d5dbe5; border-radius: 6px; padding: 6px 12px; background: #fff;
+            font-family: inherit; font-size: 0.85em; font-weight: 600; color: #1e3c72; cursor: pointer; white-space: nowrap;
+        }
+        .dinner-btn:hover { background: #f0f4fb; }
+        .dinner-btn.primary { background: #2a5298; border-color: #2a5298; color: #fff; }
+        .dinner-btn.primary:hover { background: #1e3c72; }
+        .dinner-btn.danger { color: #d63031; border-color: #f2c4c4; }
+        .dinner-btn.danger:hover { background: #fdf0f0; }
+        .dinner-toolbar .spacer { flex: 1; }
+        .dinner-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+        .dinner-stat { background: #fff; border: 1px solid #eceef1; border-radius: 12px; padding: 12px 14px; }
+        .dinner-stat .k { font-size: 0.78em; color: #888; font-weight: 600; }
+        .dinner-stat .v { font-size: 1.25em; font-weight: 700; color: #1e3c72; margin-top: 2px; font-variant-numeric: tabular-nums; }
+        .dinner-stat .s { font-size: 0.75em; color: #999; margin-top: 2px; }
+        .dinner-stat .v.neg, .dinner-table .neg { color: #d63031; }
+        .dinner-table-wrap { overflow-x: auto; }
+        .dinner-table { border-collapse: collapse; font-size: 0.82em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .dinner-table th, .dinner-table td { border: 1px solid #e3e6eb; padding: 6px 8px; }
+        .dinner-table th { background: #f4f6f9; color: #555; font-weight: 700; text-align: center; }
+        .dinner-table td { text-align: right; background: #fff; }
+        .dinner-table td.dept, .dinner-table td.name { text-align: center; font-weight: 600; color: #333; }
+        .dinner-table td.dept { background: #f9fafc; }
+        .dinner-table td.empty { color: #ccc; }
+        .dinner-table th.ev { cursor: pointer; min-width: 70px; }
+        .dinner-table th.ev:hover { background: #e6edf8; color: #1e3c72; }
+        .dinner-table th.ev .memo { display: block; font-size: 0.85em; font-weight: 500; color: #888; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+        .dinner-table th.grp-budget { background: #eef4ff; }
+        .dinner-table th.grp-used { background: #fff6e8; }
+        .dinner-table th.grp-left { background: #eefaf2; }
+        .dinner-table td.sum { font-weight: 700; }
+        .dinner-table tr.total td { background: #f4f6f9; font-weight: 700; }
+        .dinner-table .sticky { position: sticky; z-index: 1; }
+        .dinner-table .sticky.c1 { left: 0; }
+        .dinner-table .sticky.c2 { left: var(--dinner-c1w, 96px); }
+        .dinner-month-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .dinner-list { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        .dinner-list th, .dinner-list td { padding: 7px 8px; border-bottom: 1px solid #f0f0f0; text-align: left; }
+        .dinner-list th { color: #888; font-weight: 600; font-size: 0.92em; }
+        .dinner-list td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .dinner-list tr.row { cursor: pointer; }
+        .dinner-list tr.row:hover td { background: #f7f9fc; }
+        .dinner-list .who { color: #888; font-size: 0.92em; white-space: normal; }
+        .dinner-empty { text-align: center; color: #999; padding: 26px 0; font-size: 0.9em; }
+        #dinnerEventOverlay, #dinnerRosterOverlay { z-index: 1700; }
+        .dinner-form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+        .dinner-form-row label { display: flex; flex-direction: column; gap: 4px; font-size: 0.82em; color: #666; font-weight: 600; }
+        .dinner-form-row label.grow { flex: 1; min-width: 180px; }
+        .dinner-input {
+            border: 1px solid #d5dbe5; border-radius: 6px; padding: 7px 9px; font-family: inherit; font-size: 0.95em; outline: none;
+        }
+        .dinner-input:focus { border-color: #2a5298; }
+        .dinner-input.num { text-align: right; width: 110px; font-variant-numeric: tabular-nums; }
+        .dinner-att { border: 1px solid #eceef1; border-radius: 10px; overflow: hidden; }
+        .dinner-att-dept { background: #f4f6f9; padding: 6px 10px; font-size: 0.82em; font-weight: 700; color: #1e3c72; display: flex; justify-content: space-between; align-items: center; }
+        .dinner-att-dept button { border: none; background: none; color: #2a5298; font-family: inherit; font-size: 0.95em; cursor: pointer; font-weight: 600; }
+        .dinner-att-row { display: flex; align-items: center; gap: 10px; padding: 5px 10px; border-top: 1px solid #f3f3f3; }
+        .dinner-att-row label { flex: 1; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9em; }
+        .dinner-att-row .dinner-input { padding: 4px 8px; }
+        .dinner-att-row .left { font-size: 0.75em; color: #999; min-width: 92px; text-align: right; }
+        .dinner-att-row .left.neg { color: #d63031; }
+        .dinner-form-sum { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 0.88em; color: #555; flex-wrap: wrap; gap: 6px; }
+        .dinner-form-sum b { color: #1e3c72; }
+        .dinner-form-sum .warn { color: #d63031; font-weight: 600; }
+        .dinner-form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+        .dinner-form-actions .spacer { flex: 1; }
+        .dinner-roster-table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        .dinner-roster-table th { color: #888; font-weight: 600; padding: 4px; text-align: left; }
+        .dinner-roster-table td { padding: 3px 4px; }
+        .dinner-roster-table .dinner-input { width: 100%; }
+        .dinner-roster-table .dinner-input.num { width: 92px; }
+        .dinner-roster-table .ops { white-space: nowrap; }
+        .dinner-roster-table .ops button { border: 1px solid #e0e0e0; background: #fff; border-radius: 5px; padding: 3px 7px; cursor: pointer; font-size: 0.85em; color: #666; }
+        .dinner-roster-table .ops button:hover { background: #f4f6f9; }
+        .dinner-roster-table .ops button.del { color: #d63031; }
+        @media (max-width: 640px) {
+            .dinner-stats { grid-template-columns: repeat(2, 1fr); }
+            .dinner-roster-table { font-size: 0.78em; }
+            .dinner-roster-table .dinner-input.num { width: 72px; }
+            .dinner-att-row .left { display: none; }
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -1676,6 +1763,78 @@
             </div>
         </div>
     </div>
+    <div class="attendance-overlay" id="dinnerOverlay" onclick="if(event.target===this)closeDinnerPanel()">
+        <div class="attendance-box dinner-box">
+            <div class="attendance-header">
+                <h2>🍻 회식비 사용 내역</h2>
+                <div class="attendance-header-actions">
+                    <button class="attendance-close" onclick="closeDinnerPanel()" aria-label="닫기">&times;</button>
+                </div>
+            </div>
+            <div class="attendance-body">
+                <div class="dinner-toolbar">
+                    <button type="button" class="dinner-btn" onclick="shiftDinnerQuarter(-1)" title="이전 분기">◀</button>
+                    <span class="dq-label" id="dinnerQuarterLabel"></span>
+                    <button type="button" class="dinner-btn" onclick="shiftDinnerQuarter(1)" title="다음 분기">▶</button>
+                    <button type="button" class="dinner-btn" onclick="setDinnerQuarter(dinnerQuarterOf(new Date()))">이번 분기</button>
+                    <span class="spacer"></span>
+                    <button type="button" class="dinner-btn" onclick="openDinnerRoster()">👤 인원·예산 설정</button>
+                    <button type="button" class="dinner-btn" onclick="downloadDinnerCsv()">CSV 다운로드</button>
+                    <button type="button" class="dinner-btn primary" onclick="openDinnerEvent(null)">+ 사용 내역 추가</button>
+                </div>
+                <div id="dinnerContent"></div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="dinnerEventOverlay" onclick="if(event.target===this)closeDinnerEvent()">
+        <div class="modal" style="max-width:560px;">
+            <div class="modal-header">
+                <h2 id="dinnerEventTitle">회식비 사용 내역 추가</h2>
+                <button class="modal-close" onclick="closeDinnerEvent()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="dinner-form-row">
+                    <label>날짜<input type="date" id="dinnerEvDate" class="dinner-input"></label>
+                    <label class="grow">내용 (장소·메모)<input type="text" id="dinnerEvMemo" class="dinner-input" placeholder="예: 팀 회식 (OO식당)" maxlength="80"></label>
+                </div>
+                <div class="dinner-form-row" style="align-items:flex-end;">
+                    <label>총 금액 (원)<input type="text" id="dinnerEvTotal" class="dinner-input num" inputmode="numeric" placeholder="0" oninput="dinnerFormatInput(this)"></label>
+                    <button type="button" class="dinner-btn" onclick="dinnerSplitEvenly()" title="체크한 인원에게 총 금액을 똑같이 나눔 (1원 단위 나머지는 위쪽 인원부터 1원씩)">체크한 인원 균등 분배</button>
+                    <button type="button" class="dinner-btn" onclick="dinnerToggleAll()">전체 선택/해제</button>
+                </div>
+                <div class="dinner-att" id="dinnerEvMembers"></div>
+                <div class="dinner-form-sum" id="dinnerEvSum"></div>
+                <div class="dinner-form-actions">
+                    <button type="button" class="dinner-btn danger" id="dinnerEvDeleteBtn" onclick="deleteDinnerEvent()">삭제</button>
+                    <span class="spacer"></span>
+                    <button type="button" class="dinner-btn" onclick="closeDinnerEvent()">취소</button>
+                    <button type="button" class="dinner-btn primary" onclick="saveDinnerEvent()">저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="dinnerRosterOverlay" onclick="if(event.target===this)closeDinnerRoster()">
+        <div class="modal" style="max-width:720px;">
+            <div class="modal-header">
+                <h2 id="dinnerRosterTitle">인원·예산 설정</h2>
+                <button class="modal-close" onclick="closeDinnerRoster()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="ext-modal-desc">이 분기에 회식비를 받는 인원과 월별 부여 금액입니다. 위에서부터 표시 순서이며, 같은 부서는 붙여 두면 표에서 한 칸으로 묶입니다.</p>
+                <div class="dinner-form-row" style="align-items:flex-end;">
+                    <label>월 부여 금액 일괄 적용 (원)<input type="text" id="dinnerRosterBulk" class="dinner-input num" inputmode="numeric" value="50,000" oninput="dinnerFormatInput(this)"></label>
+                    <button type="button" class="dinner-btn" onclick="dinnerRosterApplyBulk()">모든 인원·모든 달에 적용</button>
+                </div>
+                <div style="overflow-x:auto;"><table class="dinner-roster-table" id="dinnerRosterTable"></table></div>
+                <div class="dinner-form-actions">
+                    <button type="button" class="dinner-btn" onclick="dinnerRosterAdd()">+ 인원 추가</button>
+                    <span class="spacer"></span>
+                    <button type="button" class="dinner-btn" onclick="closeDinnerRoster()">취소</button>
+                    <button type="button" class="dinner-btn primary" onclick="saveDinnerRoster()">저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal-overlay" id="extInstallOverlay" onclick="if(event.target===this)closeExtInstall()">
         <div class="modal" style="max-width:560px;">
             <div class="modal-header">
@@ -1732,6 +1891,7 @@
                 <button class="auth-only admin-only btn-export" onclick="exportJSON()">내보내기</button>
                 <button class="auth-only admin-only btn-import" onclick="document.getElementById('importFile').click()">불러오기</button>
                 <button class="auth-only admin-only btn-attendance" onclick="openAttendancePanel()" title="팀 출퇴근·연차 조회 (그룹웨어 연동, 최고 관리자 전용)">👥 근태관리</button>
+                <button class="auth-only admin-only btn-dinner" onclick="openDinnerPanel()" title="회식비 부여·사용 내역 (최고 관리자 전용)">🍻 회식비</button>
                 <button class="btn-print" onclick="window.print()">인쇄</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
                 <button id="authBtn" class="auth-btn" onclick="doLogin()">로그인</button>
@@ -1740,7 +1900,7 @@
         <div class="calendar-body">
             <div class="days" id="calendarDays"></div>
         </div>
-        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.18.1</span></a></div>
+        <div class="footer">품질관리팀 Calendar · <a href="javascript:void(0)" onclick="openVersionModal()" title="버전 정보 보기">v<span id="appVersionLabel">1.19.0</span></a></div>
     </div>
 
     <!-- 월간 연차 현황 플로팅 -->
@@ -1855,6 +2015,18 @@
 
         // 버전 이력 (최신이 위) — 버전 올릴 때 이 배열 맨 앞에 항목 추가 + 푸터 #appVersionLabel 텍스트 변경
         const VERSION_HISTORY = [
+            {
+                version: '1.19.0',
+                date: '2026-10-12',
+                title: '회식비 사용 내역 (최고 관리자 전용)',
+                added: [
+                    '툴바에 "🍻 회식비" 버튼 추가 — admin 계정에만 노출, /dinner_fund 경로도 admin 만 읽기/쓰기 가능하도록 Firebase 규칙 추가',
+                    '분기별 회식비 현황표 — 엑셀 "서비스개선그룹 회식비 사용 내역"과 같은 구성(부서·이름·월별 부여 비용·날짜별 사용 비용·사용 합계·남은 비용(개인/부서)), 남은 비용이 마이너스면 빨간색',
+                    '사용 내역 추가/수정/삭제 — 날짜·내용·참석자별 금액 입력, 총 금액을 체크한 인원에게 균등 분배, 입력 중 인원별 남은 비용 미리 보기',
+                    '인원·예산 설정 — 분기별 인원(부서/이름/순서)과 월별 부여 금액 편집, 이전 분기 인원·예산 가져오기, CSV 다운로드',
+                    '2026년 3분기 엑셀 사용 내역(11명, 12건) 등록',
+                ],
+            },
             {
                 version: '1.18.1',
                 date: '2026-09-22',
@@ -2787,6 +2959,8 @@
                 localStorage.removeItem('userRole');
                 const memoOv = document.getElementById('memoOverlay');
                 if (memoOv && memoOv.classList.contains('active')) closeMemo();
+                const dinOv = document.getElementById('dinnerOverlay');
+                if (dinOv && dinOv.classList.contains('active')) closeDinnerPanel();
                 // 로그아웃 시 통계 패널 열려 있으면 닫기
                 const statsPanel = document.getElementById('statsPanel');
                 const statsFab = document.getElementById('statsFab');
@@ -3806,6 +3980,455 @@
                 db.ref('/employee_info').off();
                 employeeInfoBound = false;
             }
+        }
+
+        // ===== 회식비 사용 내역 (최고 관리자 전용) =====
+        // 데이터: /dinner_fund/{YYYY-Qn} = { roster: [{id, dept, name, budget:[1달,2달,3달]}], events: {id: {date, memo, amounts:{memberId: 원}}} }
+        // Firebase 규칙에서도 ADMIN_EMAILS 만 읽기/쓰기 가능
+        let dinnerQuarter = null;
+        let dinnerData = { roster: [], events: {} };
+        let dinnerListenerQuarter = null;
+        let dinnerEditingId = null;
+        let dinnerRosterDraft = [];
+
+        function dinnerQuarterOf(d) {
+            return d.getFullYear() + '-Q' + (Math.floor(d.getMonth() / 3) + 1);
+        }
+        function dinnerQuarterMonths(q) {
+            const y = Number(q.slice(0, 4)), n = Number(q.slice(-1));
+            return [1, 2, 3].map(i => `${y}-${String((n - 1) * 3 + i).padStart(2, '0')}`);
+        }
+        function dinnerQuarterRange(q) {
+            const ms = dinnerQuarterMonths(q);
+            const last = ms[2].split('-').map(Number);
+            return [ms[0] + '-01', ms[2] + '-' + String(new Date(last[0], last[1], 0).getDate()).padStart(2, '0')];
+        }
+        function dinnerShiftQuarterKey(q, delta) {
+            let y = Number(q.slice(0, 4)), n = Number(q.slice(-1)) - 1 + delta;
+            y += Math.floor(n / 4);
+            n = ((n % 4) + 4) % 4;
+            return `${y}-Q${n + 1}`;
+        }
+        function dinnerWon(v) { return Math.round(v || 0).toLocaleString('ko-KR'); }
+        function dinnerParse(str) {
+            const n = Number(String(str || '').replace(/[^\d-]/g, ''));
+            return isFinite(n) ? n : 0;
+        }
+        function dinnerFormatInput(el) {
+            const n = dinnerParse(el.value);
+            el.value = el.value.trim() === '' ? '' : n.toLocaleString('ko-KR');
+            if (el.closest('#dinnerEventOverlay')) renderDinnerEventSum();
+        }
+        function dinnerNewId(prefix) {
+            return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        }
+        function dinnerRoster() { return Array.isArray(dinnerData.roster) ? dinnerData.roster.filter(Boolean) : []; }
+        function dinnerEvents() {
+            return Object.entries(dinnerData.events || {})
+                .map(([id, e]) => Object.assign({ id }, e))
+                .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.createdAt || 0) - (b.createdAt || 0));
+        }
+        function dinnerBudgetSum(m) { return (m.budget || []).reduce((a, b) => a + (Number(b) || 0), 0); }
+        function dinnerUsedOf(id, exceptEventId) {
+            return dinnerEvents().reduce((a, e) => a + (e.id !== exceptEventId ? (Number((e.amounts || {})[id]) || 0) : 0), 0);
+        }
+
+        function openDinnerPanel() {
+            if (!isAdminUser()) return;
+            document.getElementById('dinnerOverlay').classList.add('active');
+            // 캘린더가 보고 있는 달의 분기로 열기
+            const base = (currentYear && currentMonth) ? new Date(currentYear, currentMonth - 1, 1) : new Date();
+            setDinnerQuarter(dinnerQuarterOf(base));
+        }
+
+        function closeDinnerPanel() {
+            document.getElementById('dinnerOverlay').classList.remove('active');
+            closeDinnerEvent();
+            closeDinnerRoster();
+            if (db && dinnerListenerQuarter) {
+                db.ref('/dinner_fund/' + dinnerListenerQuarter).off();
+                dinnerListenerQuarter = null;
+            }
+        }
+
+        function shiftDinnerQuarter(delta) { setDinnerQuarter(dinnerShiftQuarterKey(dinnerQuarter, delta)); }
+
+        function setDinnerQuarter(q) {
+            dinnerQuarter = q;
+            document.getElementById('dinnerQuarterLabel').textContent = `${q.slice(0, 4)}년 ${q.slice(-1)}분기`;
+            if (!db || !isAdminUser()) return;
+            if (dinnerListenerQuarter && dinnerListenerQuarter !== q) db.ref('/dinner_fund/' + dinnerListenerQuarter).off();
+            dinnerListenerQuarter = q;
+            dinnerData = { roster: [], events: {} };
+            document.getElementById('dinnerContent').innerHTML = '<div class="dinner-empty">불러오는 중…</div>';
+            db.ref('/dinner_fund/' + q).on('value', function(snap) {
+                if (dinnerListenerQuarter !== q) return;
+                const v = snap.val() || {};
+                dinnerData = { roster: v.roster || [], events: v.events || {} };
+                renderDinnerPanel();
+            }, function(err) {
+                console.warn('회식비 데이터 조회 실패', err);
+                document.getElementById('dinnerContent').innerHTML = '<div class="dinner-empty">불러오기에 실패했습니다. (권한 또는 네트워크 확인)</div>';
+            });
+        }
+
+        function renderDinnerPanel() {
+            const box = document.getElementById('dinnerContent');
+            const roster = dinnerRoster();
+            const months = dinnerQuarterMonths(dinnerQuarter);
+            if (!roster.length) {
+                box.innerHTML = `<div class="attendance-section"><div class="dinner-empty">
+                    이 분기에 등록된 인원이 없습니다.<br><br>
+                    <button type="button" class="dinner-btn primary" onclick="copyDinnerRosterFromPrev()">이전 분기 인원·예산 가져오기</button>
+                    <button type="button" class="dinner-btn" onclick="openDinnerRoster()">직접 등록</button>
+                </div></div>`;
+                return;
+            }
+            const events = dinnerEvents();
+            const used = {};
+            roster.forEach(m => { used[m.id] = 0; });
+            events.forEach(e => Object.entries(e.amounts || {}).forEach(([id, v]) => { if (id in used) used[id] += Number(v) || 0; }));
+            const totalBudget = roster.reduce((a, m) => a + dinnerBudgetSum(m), 0);
+            const totalUsed = roster.reduce((a, m) => a + used[m.id], 0);
+            const left = totalBudget - totalUsed;
+            const overCount = roster.filter(m => dinnerBudgetSum(m) - used[m.id] < 0).length;
+
+            // 같은 부서가 연속된 구간 = 한 묶음
+            const groups = [];
+            roster.forEach(m => {
+                const g = groups[groups.length - 1];
+                if (g && g.dept === (m.dept || '')) g.members.push(m);
+                else groups.push({ dept: m.dept || '', members: [m] });
+            });
+
+            const neg = v => v < 0 ? ' neg' : '';
+            const cell = v => v ? dinnerWon(v) : '';
+            let html = `<div class="dinner-stats">
+                <div class="dinner-stat"><div class="k">부여 비용</div><div class="v">${dinnerWon(totalBudget)}원</div><div class="s">${roster.length}명 · 3개월</div></div>
+                <div class="dinner-stat"><div class="k">사용 비용</div><div class="v">${dinnerWon(totalUsed)}원</div><div class="s">${events.length}건</div></div>
+                <div class="dinner-stat"><div class="k">남은 비용</div><div class="v${neg(left)}">${dinnerWon(left)}원</div><div class="s">${overCount ? `개인 초과 ${overCount}명` : '초과 인원 없음'}</div></div>
+                <div class="dinner-stat"><div class="k">사용률</div><div class="v${totalUsed > totalBudget ? ' neg' : ''}">${totalBudget ? (totalUsed / totalBudget * 100).toFixed(1) : '0.0'}%</div><div class="s">사용 ÷ 부여</div></div>
+            </div>`;
+
+            html += `<div class="attendance-section"><div class="attendance-section-title">${dinnerQuarter.slice(0, 4)}년 ${dinnerQuarter.slice(-1)}분기 회식비 현황</div>
+                <div class="dinner-table-wrap"><table class="dinner-table"><thead><tr>
+                    <th rowspan="2" class="sticky c1">부서</th><th rowspan="2" class="sticky c2">이름</th>
+                    <th colspan="3" class="grp-budget">부여된 비용</th><th rowspan="2" class="grp-budget">합계</th>
+                    ${events.length ? `<th colspan="${events.length}" class="grp-used">사용 비용 <span style="font-weight:500;color:#999;">(날짜를 누르면 수정)</span></th>` : ''}
+                    <th rowspan="2" class="grp-used">사용 합계</th><th rowspan="2" class="grp-left">남은 비용<br>(개인)</th><th rowspan="2" class="grp-left">남은 비용<br>(부서)</th>
+                </tr><tr>
+                    ${months.map(mo => `<th class="grp-budget">${Number(mo.slice(5))}월</th>`).join('')}
+                    ${events.map(e => `<th class="ev" onclick="openDinnerEvent('${e.id}')" title="${escHtml(e.memo || '')}">${Number(e.date.slice(5, 7))}/${Number(e.date.slice(8))}${e.memo ? `<span class="memo">${escHtml(e.memo)}</span>` : ''}</th>`).join('')}
+                </tr></thead><tbody>`;
+            groups.forEach(g => {
+                const gBudget = g.members.reduce((a, m) => a + dinnerBudgetSum(m), 0);
+                const gLeft = g.members.reduce((a, m) => a + dinnerBudgetSum(m) - used[m.id], 0);
+                g.members.forEach((m, i) => {
+                    const mLeft = dinnerBudgetSum(m) - used[m.id];
+                    html += '<tr>';
+                    if (i === 0) html += `<td class="dept sticky c1" rowspan="${g.members.length}">${escHtml(g.dept) || '-'}</td>`;
+                    html += `<td class="name sticky c2">${escHtml(m.name)}</td>`;
+                    html += [0, 1, 2].map(k => `<td>${cell(Number((m.budget || [])[k]) || 0)}</td>`).join('');
+                    if (i === 0) html += `<td class="sum" rowspan="${g.members.length}">${dinnerWon(gBudget)}</td>`;
+                    html += events.map(e => `<td>${cell(Number((e.amounts || {})[m.id]) || 0)}</td>`).join('');
+                    html += `<td class="sum">${dinnerWon(used[m.id])}</td><td class="sum${neg(mLeft)}">${dinnerWon(mLeft)}</td>`;
+                    if (i === 0) html += `<td class="sum${neg(gLeft)}" rowspan="${g.members.length}">${dinnerWon(gLeft)}</td>`;
+                    html += '</tr>';
+                });
+            });
+            const colSum = k => roster.reduce((a, m) => a + (Number((m.budget || [])[k]) || 0), 0);
+            html += `<tr class="total"><td colspan="2" class="dept sticky c1" style="text-align:center;">합계</td>
+                ${[0, 1, 2].map(k => `<td>${dinnerWon(colSum(k))}</td>`).join('')}<td>${dinnerWon(totalBudget)}</td>
+                ${events.map(e => `<td>${dinnerWon(roster.reduce((a, m) => a + (Number((e.amounts || {})[m.id]) || 0), 0))}</td>`).join('')}
+                <td>${dinnerWon(totalUsed)}</td><td class="${neg(left)}">${dinnerWon(left)}</td><td class="${neg(left)}">${dinnerWon(left)}</td></tr>`;
+            html += `</tbody></table></div>
+                <div class="dinner-month-row">${months.map((mo, k) => {
+                    const mu = events.filter(e => e.date.slice(0, 7) === mo)
+                        .reduce((a, e) => a + roster.reduce((b, m) => b + (Number((e.amounts || {})[m.id]) || 0), 0), 0);
+                    return `<span class="attendance-chip"><i style="background:${mu > colSum(k) ? '#d63031' : '#2a78d6'}"></i>${Number(mo.slice(5))}월 사용 ${dinnerWon(mu)}원 / 부여 ${dinnerWon(colSum(k))}원</span>`;
+                }).join('')}</div></div>`;
+
+            // 사용 내역 목록
+            const nameOf = id => (roster.find(m => m.id === id) || {}).name || '(삭제된 인원)';
+            html += `<div class="attendance-section"><div class="attendance-section-title">사용 내역 (${events.length}건)</div>`;
+            if (!events.length) {
+                html += '<div class="dinner-empty">아직 사용 내역이 없습니다. 우측 상단 [+ 사용 내역 추가]로 입력하세요.</div>';
+            } else {
+                html += `<div style="overflow-x:auto;"><table class="dinner-list"><thead><tr><th>날짜</th><th>내용</th><th>참석</th><th class="num">금액</th><th class="num">1인당</th></tr></thead><tbody>`;
+                events.forEach(e => {
+                    const ids = Object.keys(e.amounts || {}).filter(id => Number(e.amounts[id]));
+                    const vals = ids.map(id => Number(e.amounts[id]));
+                    const sum = vals.reduce((a, b) => a + b, 0);
+                    const per = vals.length && vals.every(v => v === vals[0]) ? dinnerWon(vals[0]) : (vals.length ? '인원별 상이' : '-');
+                    const wd = ['일', '월', '화', '수', '목', '금', '토'][new Date(e.date + 'T00:00:00').getDay()];
+                    html += `<tr class="row" onclick="openDinnerEvent('${e.id}')">
+                        <td style="white-space:nowrap;">${e.date.slice(5).replace('-', '/')} (${wd})</td>
+                        <td>${escHtml(e.memo || '') || '<span style="color:#bbb;">-</span>'}</td>
+                        <td class="who">${ids.length}명 · ${ids.map(id => escHtml(nameOf(id))).join(', ')}</td>
+                        <td class="num">${dinnerWon(sum)}</td><td class="num">${per}</td></tr>`;
+                });
+                html += '</tbody></table></div>';
+            }
+            html += '</div>';
+            box.innerHTML = html;
+            // 이름 열 고정 위치 = 부서 열 실제 너비
+            const firstDept = box.querySelector('.dinner-table thead th.c1');
+            if (firstDept) box.querySelector('.dinner-table').style.setProperty('--dinner-c1w', firstDept.offsetWidth + 'px');
+        }
+
+        function copyDinnerRosterFromPrev() {
+            if (!db || !requireAdmin()) return;
+            const tryQ = (q, left) => {
+                if (left <= 0) { alert('최근 2년 안에 인원이 등록된 분기가 없습니다. [직접 등록]으로 입력하세요.'); return; }
+                db.ref('/dinner_fund/' + q + '/roster').once('value').then(snap => {
+                    const r = (snap.val() || []).filter(Boolean);
+                    if (!r.length) return tryQ(dinnerShiftQuarterKey(q, -1), left - 1);
+                    if (!confirm(`${q.slice(0, 4)}년 ${q.slice(-1)}분기 인원 ${r.length}명과 월별 부여 금액을 이 분기로 가져올까요?`)) return;
+                    db.ref('/dinner_fund/' + dinnerQuarter + '/roster').set(r.map(m => ({ id: m.id, dept: m.dept || '', name: m.name || '', budget: (m.budget || [0, 0, 0]).slice(0, 3) })));
+                });
+            };
+            tryQ(dinnerShiftQuarterKey(dinnerQuarter, -1), 8);
+        }
+
+        // --- 사용 내역 추가/수정 ---
+        function openDinnerEvent(id) {
+            if (!requireAdmin()) return;
+            const roster = dinnerRoster();
+            if (!roster.length) { alert('먼저 이 분기 인원을 등록하세요.'); return; }
+            dinnerEditingId = id;
+            const ev = id ? (dinnerData.events || {})[id] : null;
+            if (id && !ev) return;
+            const [from, to] = dinnerQuarterRange(dinnerQuarter);
+            const today = attendanceMonthKey() + '-' + String(new Date().getDate()).padStart(2, '0');
+            const dateEl = document.getElementById('dinnerEvDate');
+            dateEl.min = from; dateEl.max = to;
+            dateEl.value = ev ? ev.date : (today >= from && today <= to ? today : from);
+            document.getElementById('dinnerEvMemo').value = ev ? (ev.memo || '') : '';
+            const amounts = ev ? (ev.amounts || {}) : {};
+            const evTotal = Object.values(amounts).reduce((a, b) => a + (Number(b) || 0), 0);
+            document.getElementById('dinnerEvTotal').value = evTotal ? dinnerWon(evTotal) : '';
+            document.getElementById('dinnerEventTitle').textContent = id ? '회식비 사용 내역 수정' : '회식비 사용 내역 추가';
+            document.getElementById('dinnerEvDeleteBtn').style.display = id ? '' : 'none';
+
+            const groups = [];
+            roster.forEach(m => {
+                const g = groups[groups.length - 1];
+                if (g && g.dept === (m.dept || '')) g.members.push(m);
+                else groups.push({ dept: m.dept || '', members: [m] });
+            });
+            document.getElementById('dinnerEvMembers').innerHTML = groups.map((g, gi) => `
+                <div class="dinner-att-dept"><span>${escHtml(g.dept) || '부서 없음'}</span><button type="button" onclick="dinnerToggleGroup(${gi})">부서 전체 선택/해제</button></div>
+                ${g.members.map(m => {
+                    const v = Number(amounts[m.id]) || 0;
+                    const leftBefore = dinnerBudgetSum(m) - dinnerUsedOf(m.id, id);
+                    return `<div class="dinner-att-row" data-id="${m.id}" data-group="${gi}" data-left="${leftBefore}">
+                        <label><input type="checkbox" ${v ? 'checked' : ''} onchange="dinnerOnCheck(this)"> ${escHtml(m.name)}</label>
+                        <span class="left"></span>
+                        <input type="text" class="dinner-input num" inputmode="numeric" value="${v ? dinnerWon(v) : ''}" placeholder="0" oninput="dinnerOnAmount(this)">
+                    </div>`;
+                }).join('')}`).join('');
+            renderDinnerEventSum();
+            document.getElementById('dinnerEventOverlay').classList.add('active');
+            if (!id) document.getElementById('dinnerEvMemo').focus();
+        }
+
+        function closeDinnerEvent() {
+            document.getElementById('dinnerEventOverlay').classList.remove('active');
+            dinnerEditingId = null;
+        }
+
+        function dinnerEventRows() { return Array.from(document.querySelectorAll('#dinnerEvMembers .dinner-att-row')); }
+
+        function dinnerOnCheck(cb) {
+            const row = cb.closest('.dinner-att-row');
+            if (!cb.checked) row.querySelector('.dinner-input').value = '';
+            renderDinnerEventSum();
+        }
+        function dinnerOnAmount(input) {
+            dinnerFormatInput(input);
+            input.closest('.dinner-att-row').querySelector('input[type=checkbox]').checked = dinnerParse(input.value) > 0;
+            renderDinnerEventSum();
+        }
+        function dinnerSetChecked(rows) {
+            const allOn = rows.every(r => r.querySelector('input[type=checkbox]').checked);
+            rows.forEach(r => {
+                r.querySelector('input[type=checkbox]').checked = !allOn;
+                if (allOn) r.querySelector('.dinner-input').value = '';
+            });
+            renderDinnerEventSum();
+        }
+        function dinnerToggleAll() { dinnerSetChecked(dinnerEventRows()); }
+        function dinnerToggleGroup(gi) { dinnerSetChecked(dinnerEventRows().filter(r => r.dataset.group === String(gi))); }
+
+        function dinnerSplitEvenly() {
+            const total = dinnerParse(document.getElementById('dinnerEvTotal').value);
+            const rows = dinnerEventRows().filter(r => r.querySelector('input[type=checkbox]').checked);
+            if (!total) { alert('총 금액을 먼저 입력하세요.'); return; }
+            if (!rows.length) { alert('나눌 인원을 체크하세요.'); return; }
+            const base = Math.floor(total / rows.length);
+            let rest = total - base * rows.length;
+            rows.forEach(r => {
+                const v = base + (rest > 0 ? 1 : 0);
+                if (rest > 0) rest--;
+                r.querySelector('.dinner-input').value = dinnerWon(v);
+            });
+            renderDinnerEventSum();
+        }
+
+        function renderDinnerEventSum() {
+            const rows = dinnerEventRows();
+            let sum = 0, cnt = 0;
+            rows.forEach(r => {
+                const v = dinnerParse(r.querySelector('.dinner-input').value);
+                if (v) { sum += v; cnt++; }
+                const after = Number(r.dataset.left) - v;
+                const el = r.querySelector('.left');
+                el.textContent = `남은 ${dinnerWon(after)}원`;
+                el.classList.toggle('neg', after < 0);
+            });
+            const total = dinnerParse(document.getElementById('dinnerEvTotal').value);
+            const diff = total && total !== sum ? `<span class="warn">총 금액과 ${dinnerWon(Math.abs(total - sum))}원 차이</span>` : '';
+            document.getElementById('dinnerEvSum').innerHTML = `<span>참석 <b>${cnt}</b>명 · 인원별 합계 <b>${dinnerWon(sum)}</b>원</span>${diff}`;
+        }
+
+        function saveDinnerEvent() {
+            if (!db || !requireAdmin()) return;
+            const date = document.getElementById('dinnerEvDate').value;
+            const [from, to] = dinnerQuarterRange(dinnerQuarter);
+            if (!date || date < from || date > to) { alert(`날짜는 ${from} ~ ${to} 사이여야 합니다.`); return; }
+            const amounts = {};
+            dinnerEventRows().forEach(r => {
+                const v = dinnerParse(r.querySelector('.dinner-input').value);
+                if (v) amounts[r.dataset.id] = v;
+            });
+            if (!Object.keys(amounts).length) { alert('인원별 금액을 입력하세요. (총 금액 입력 후 [체크한 인원 균등 분배]를 누르면 편해요)'); return; }
+            const sum = Object.values(amounts).reduce((a, b) => a + b, 0);
+            const total = dinnerParse(document.getElementById('dinnerEvTotal').value);
+            if (total && total !== sum && !confirm(`총 금액(${dinnerWon(total)}원)과 인원별 합계(${dinnerWon(sum)}원)가 다릅니다. 인원별 금액대로 저장할까요?`)) return;
+            const id = dinnerEditingId || dinnerNewId('e');
+            const prev = dinnerEditingId ? (dinnerData.events || {})[dinnerEditingId] : null;
+            const memo = document.getElementById('dinnerEvMemo').value.trim();
+            db.ref('/dinner_fund/' + dinnerQuarter + '/events/' + id).set({
+                date, memo, amounts,
+                createdAt: (prev && prev.createdAt) || Date.now(),
+                updatedAt: Date.now(),
+                updatedBy: currentUser ? currentUser.email : '',
+            }).then(closeDinnerEvent).catch(err => alert('저장 실패: ' + err.message));
+        }
+
+        function deleteDinnerEvent() {
+            if (!db || !requireAdmin() || !dinnerEditingId) return;
+            const ev = (dinnerData.events || {})[dinnerEditingId];
+            if (!confirm(`${ev ? ev.date : ''} 사용 내역을 삭제할까요?`)) return;
+            db.ref('/dinner_fund/' + dinnerQuarter + '/events/' + dinnerEditingId).remove()
+                .then(closeDinnerEvent).catch(err => alert('삭제 실패: ' + err.message));
+        }
+
+        // --- 인원·예산 설정 ---
+        function openDinnerRoster() {
+            if (!requireAdmin()) return;
+            dinnerRosterDraft = dinnerRoster().map(m => ({ id: m.id, dept: m.dept || '', name: m.name || '', budget: [0, 1, 2].map(k => Number((m.budget || [])[k]) || 0) }));
+            if (!dinnerRosterDraft.length) dinnerRosterAdd(true);
+            document.getElementById('dinnerRosterTitle').textContent = `인원·예산 설정 — ${dinnerQuarter.slice(0, 4)}년 ${dinnerQuarter.slice(-1)}분기`;
+            renderDinnerRoster();
+            document.getElementById('dinnerRosterOverlay').classList.add('active');
+        }
+        function closeDinnerRoster() { document.getElementById('dinnerRosterOverlay').classList.remove('active'); }
+
+        function dinnerRosterSync() {
+            document.querySelectorAll('#dinnerRosterTable tbody tr').forEach((tr, i) => {
+                const m = dinnerRosterDraft[i];
+                if (!m) return;
+                m.dept = tr.querySelector('[data-f=dept]').value.trim();
+                m.name = tr.querySelector('[data-f=name]').value.trim();
+                m.budget = [0, 1, 2].map(k => dinnerParse(tr.querySelector(`[data-f=b${k}]`).value));
+            });
+        }
+        function renderDinnerRoster() {
+            const months = dinnerQuarterMonths(dinnerQuarter);
+            document.getElementById('dinnerRosterTable').innerHTML = `<thead><tr><th>부서</th><th>이름</th>${months.map(mo => `<th>${Number(mo.slice(5))}월</th>`).join('')}<th></th></tr></thead><tbody>
+                ${dinnerRosterDraft.map((m, i) => `<tr>
+                    <td><input class="dinner-input" data-f="dept" value="${escHtml(m.dept)}" placeholder="부서" list="dinnerDeptList"></td>
+                    <td><input class="dinner-input" data-f="name" value="${escHtml(m.name)}" placeholder="이름"></td>
+                    ${[0, 1, 2].map(k => `<td><input class="dinner-input num" data-f="b${k}" inputmode="numeric" value="${m.budget[k] ? dinnerWon(m.budget[k]) : ''}" placeholder="0" oninput="dinnerFormatInput(this)"></td>`).join('')}
+                    <td class="ops"><button type="button" onclick="dinnerRosterMove(${i},-1)" title="위로">▲</button> <button type="button" onclick="dinnerRosterMove(${i},1)" title="아래로">▼</button> <button type="button" class="del" onclick="dinnerRosterRemove(${i})" title="삭제">✕</button></td>
+                </tr>`).join('')}</tbody>
+                <datalist id="dinnerDeptList">${[...new Set(dinnerRosterDraft.map(m => m.dept).filter(Boolean))].map(d => `<option value="${escHtml(d)}">`).join('')}</datalist>`;
+        }
+        function dinnerRosterAdd(silent) {
+            if (!silent) dinnerRosterSync();
+            const last = dinnerRosterDraft[dinnerRosterDraft.length - 1];
+            const bulk = dinnerParse(document.getElementById('dinnerRosterBulk').value);
+            dinnerRosterDraft.push({ id: dinnerNewId('m'), dept: last ? last.dept : '', name: '', budget: [bulk, bulk, bulk] });
+            if (!silent) {
+                renderDinnerRoster();
+                const inputs = document.querySelectorAll('#dinnerRosterTable [data-f=name]');
+                if (inputs.length) inputs[inputs.length - 1].focus();
+            }
+        }
+        function dinnerRosterMove(i, d) {
+            dinnerRosterSync();
+            const j = i + d;
+            if (j < 0 || j >= dinnerRosterDraft.length) return;
+            [dinnerRosterDraft[i], dinnerRosterDraft[j]] = [dinnerRosterDraft[j], dinnerRosterDraft[i]];
+            renderDinnerRoster();
+        }
+        function dinnerRosterRemove(i) {
+            dinnerRosterSync();
+            const m = dinnerRosterDraft[i];
+            const u = dinnerUsedOf(m.id);
+            if (u && !confirm(`${m.name || '이 인원'}은(는) 이 분기에 ${dinnerWon(u)}원 사용 내역이 있습니다. 삭제하면 저장 시 사용 내역에서도 빠집니다. 삭제할까요?`)) return;
+            dinnerRosterDraft.splice(i, 1);
+            renderDinnerRoster();
+        }
+        function dinnerRosterApplyBulk() {
+            dinnerRosterSync();
+            const v = dinnerParse(document.getElementById('dinnerRosterBulk').value);
+            dinnerRosterDraft.forEach(m => { m.budget = [v, v, v]; });
+            renderDinnerRoster();
+        }
+        function saveDinnerRoster() {
+            if (!db || !requireAdmin()) return;
+            dinnerRosterSync();
+            const roster = dinnerRosterDraft.filter(m => m.name);
+            if (dinnerRosterDraft.some(m => !m.name && (m.dept || m.budget.some(Boolean))) && !confirm('이름이 비어 있는 줄은 빼고 저장합니다. 계속할까요?')) return;
+            const keep = new Set(roster.map(m => m.id));
+            const updates = { roster: roster.map(m => ({ id: m.id, dept: m.dept, name: m.name, budget: m.budget })) };
+            // 삭제된 인원의 사용 금액은 각 내역에서 제거, 참석자가 0명이 되는 내역은 삭제
+            Object.entries(dinnerData.events || {}).forEach(([eid, e]) => {
+                const amounts = e.amounts || {};
+                const removed = Object.keys(amounts).filter(id => !keep.has(id));
+                if (!removed.length) return;
+                if (removed.length === Object.keys(amounts).length) updates['events/' + eid] = null;
+                else removed.forEach(id => { updates['events/' + eid + '/amounts/' + id] = null; });
+            });
+            db.ref('/dinner_fund/' + dinnerQuarter).update(updates)
+                .then(closeDinnerRoster).catch(err => alert('저장 실패: ' + err.message));
+        }
+
+        function downloadDinnerCsv() {
+            const roster = dinnerRoster();
+            if (!roster.length) return;
+            const events = dinnerEvents();
+            const months = dinnerQuarterMonths(dinnerQuarter);
+            const head = ['부서', '이름', ...months.map(mo => `${Number(mo.slice(5))}월 부여`), '부여 합계',
+                ...events.map(e => e.date + (e.memo ? ' ' + e.memo : '')), '사용 합계', '남은 비용(개인)'];
+            const rows = roster.map(m => {
+                const b = [0, 1, 2].map(k => Number((m.budget || [])[k]) || 0);
+                const ev = events.map(e => Number((e.amounts || {})[m.id]) || 0);
+                const u = ev.reduce((a, c) => a + c, 0);
+                return [m.dept || '', m.name, ...b, dinnerBudgetSum(m), ...ev.map(v => v || ''), u, dinnerBudgetSum(m) - u];
+            });
+            const csv = [head, ...rows].map(r => r.map(c => {
+                const s = String(c);
+                return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+            }).join(',')).join('\r\n');
+            const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `회식비_사용내역_${dinnerQuarter.slice(0, 4)}년${dinnerQuarter.slice(-1)}분기.csv`;
+            a.click();
+            URL.revokeObjectURL(a.href);
         }
 
         function openExtInstall() {
@@ -5431,6 +6054,12 @@
             if (e.key !== 'Escape') return;
             const memoOv = document.getElementById('memoOverlay');
             if (memoOv && memoOv.classList.contains('active')) { closeMemo(); return; }
+            const dEvOv = document.getElementById('dinnerEventOverlay');
+            if (dEvOv && dEvOv.classList.contains('active')) { closeDinnerEvent(); return; }
+            const dRoOv = document.getElementById('dinnerRosterOverlay');
+            if (dRoOv && dRoOv.classList.contains('active')) { closeDinnerRoster(); return; }
+            const dinOv = document.getElementById('dinnerOverlay');
+            if (dinOv && dinOv.classList.contains('active')) { closeDinnerPanel(); return; }
             const attOv = document.getElementById('attendanceOverlay');
             if (attOv && attOv.classList.contains('active')) { closeAttendancePanel(); return; }
             const extOv = document.getElementById('extInstallOverlay');
@@ -5447,7 +6076,7 @@
             const el = document.activeElement;
             if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
             // 모달/메모/로그인/버전 오버레이가 열려 있으면 무시
-            const overlayOpen = ['modalOverlay', 'memoOverlay', 'loginOverlay', 'versionOverlay', 'attendanceOverlay', 'extInstallOverlay'].some(id => {
+            const overlayOpen = ['modalOverlay', 'memoOverlay', 'loginOverlay', 'versionOverlay', 'attendanceOverlay', 'extInstallOverlay', 'dinnerOverlay', 'dinnerEventOverlay', 'dinnerRosterOverlay'].some(id => {
                 const o = document.getElementById(id);
                 return o && o.classList.contains('active');
             });
