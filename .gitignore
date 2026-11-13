@@ -12,3 +12,4 @@ png/
 .env
 serviceAccountKey.json
 userdata/
+.omc/
